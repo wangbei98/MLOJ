@@ -88,7 +88,7 @@ class UserTable(UserMixin,db.Model):
 	def password(self,password):
 		self.password_hash = generate_password_hash(password)
 	def varify_password(self,password):
-		return check_password_hash(self,password_hash,password)
+		return check_password_hash(self.password_hash,password)
 	def __repr__(self):
 		return "<User {}>".format(self.user_id)
 class ScoresTable(db.Model):
@@ -108,7 +108,8 @@ class CourseTable(db.Model):
 class Login(Resource):
 	def post(self):
 		if current_user.is_authenticated:
-			return redirect(url_for('main.index'))
+			# TODO
+			return jsonify('already authenticated')
 		parse = reqparse.RequestParser()
 		parse.add_argument('user_id',type=int,help='用户名验证不通过',default=201000000)
 		parse.add_argument('password',type=str,help='密码验证不通过')
@@ -117,19 +118,24 @@ class Login(Resource):
 		user_id = args.get("user_id")
 		password = args.get("password")
 		try:
-			user = UserTable.query.filter_by(user_id=user_id).first()
-			if user is None or user.verify_password(password) is False:
-				print("{} User query: {} failure...".format(time.strftime("%Y-%m-%d %H:%M:%S"), user_id))
-				return False
-		except:
-			print("{} User query: {} failure...".format(time.strftime("%Y-%m-%d %H:%M:%S"),user_id))
-			return False
+			user = UserTable.query.get(user_id)
+		except Exception:
+			print("{} User query: {} failure......".format(time.strftime("%Y-%m-%d %H:%M:%S"),user_id))
+			return jsonify('user not found')
 		else:
 			print("{} User query: {} success...".format(time.strftime("%Y-%m-%d %H:%M:%S"), user_id))
-			return True
 		finally:
 			db.session.close()
-		user = UserTable.query.filter_by(user_id=user_id).first() 
+		if user and user.varify_password(password):
+			login_user(user)
+			print(current_user)
+			return jsonify('login success')
+		else:
+			print('in if')
+			print("{} User query: {} failure...".format(time.strftime("%Y-%m-%d %H:%M:%S"), user_id))
+			print('user is None or password False')
+			return jsonify('login fail')
+		
 class Register(Resource):
 	def post(self):
 		parse = reqparse.RequestParser()
@@ -147,10 +153,10 @@ class Register(Resource):
 		except:
 			print("{} User add: {} failure...".format(time.strftime("%Y-%m-%d %H:%M:%S"), user_id))
 			db.session.rollback()
-			return False
+			return jsonify('user add fail')
 		else:
 			print("{} User add: {} success...".format(time.strftime("%Y-%m-%d %H:%M:%S"), user_id))
-			return True
+			return jsonify('user add success')
 		finally:
 			db.session.close()
 api.add_resource(Login, '/login', endpoint='login')
