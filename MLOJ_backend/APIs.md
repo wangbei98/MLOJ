@@ -91,7 +91,11 @@
 		}
 * 批改作业：http://localhost:5000/pingfen?hid=1&uid=201672048
 	* GET  去批改页面
-
+	* body:
+		```
+			homeworkname:'xxx',
+			type: 0/1
+		```
 * 批改作业： http://localhost:5000/pingfen?hid=1&uid=201672048
 	* POST 提交分数
 	* body
