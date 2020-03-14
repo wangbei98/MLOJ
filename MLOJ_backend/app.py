@@ -72,7 +72,7 @@ def load_user(id):
 class UserTable(UserMixin,db.Model):
 	__tablename__ = 'UserTable'
 	user_id = db.Column(db.Integer,primary_key=True)
-	password_hash = db.Column(db.String(100), nullable=False)
+	password_hash = db.Column(db.String(200), nullable=False)
 	is_admin = db.Column(db.Boolean, default=False)
 	def get_id(self):
 		return self.user_id
