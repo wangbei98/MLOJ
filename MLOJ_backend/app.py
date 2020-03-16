@@ -55,7 +55,7 @@ def make_shell_context():
 	return dict(db=db, UserTable=UserTable,CourseTable = CourseTable,HomeworkTable = HomeworkTable,UserHomeworkTable = UserHomeworkTable)
 
 
-api.add_resource(Login, '/login', endpoint='login')
-api.add_resource(Register, '/register', endpoint='register')
-api.add_resource(Logout,'/logout',endpoint='logout')
+api.add_resource(Login, '/api/login', endpoint='login')
+api.add_resource(Register, '/api/register', endpoint='register')
+api.add_resource(Logout,'/api/logout',endpoint='logout')
 
