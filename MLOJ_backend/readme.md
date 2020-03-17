@@ -103,3 +103,5 @@ MLOJ_backend
 | 数据集     | /api/course/homework/datasets?hid=xxx      | 学生&老师：GET 获取xxx作业题对应的数据集<br/>老师：POST(file=xx)为xxx上传数据集<br/>老师：DELETE删除数据集 |
 | 作业       | /api/user/course/homework?uid=xxx&hid=xxx  | 学生&老师：GET获取xxx学生的xxx作业信息<br/>学生：POST(file=xxx) 这个学生提交这次作业的答案 |
 | 分数       | /api/course/homework/score?uid=xxx&hid=xxx | 老师：POST(score=xxxx) 为这个人的这个作业打分                |
+| 注册       | /api/register                              | POST (uid=xx,username=xx) 注册                               |
+| 登录       | /api/login                                 | POST(uid=xxx,password=xx)登录                                |
