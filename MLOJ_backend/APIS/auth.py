@@ -18,7 +18,7 @@ from extensions import db,login_manager
 '''
 
 
-# apis
+# 定义API类
 class Login(Resource):
 	def post(self):
 		if current_user.is_authenticated:
