@@ -8,7 +8,7 @@ from extensions import db
 
 # Models
 class UserTable(UserMixin,db.Model):
-	__tablename__ = 'UserTable'
+	__tablename__ = 'user'
 	uid = db.Column(db.Integer,primary_key=True)
 	password_hash = db.Column(db.String(200), nullable=False)
 	username = db.Column(db.String(20))
@@ -32,39 +32,51 @@ class UserTable(UserMixin,db.Model):
 		return "<User {}>".format(self.uid)
 
 class CourseTable(db.Model):
-	__tablename__ = 'CourseTable'
+	__tablename__ = 'course'
 	cid = db.Column(db.Integer,primary_key=True)
 	course_name = db.Column(db.String(100))
 	course_desc = db.Column(db.String(500))
-	course_begin_time = db.Column(db.DateTime)
-	courseware_url = db.Column(db.String(100))
+	course_begin_time = db.Column(db.Integer)
+
+	# 建立和 courseware 的一对多关系
+	coursewares = db.relationship('CoursewareTable')
+	# 建立和 homework 的一对多关系
+	homeworks = db.relationship('HomeworkTable')
+
 	def __repr__(self):
 		return "<Course {}>".format(self.uid)
 
-# 用户课程表
-# class ScoresTable(db.Model):
-# 	__tablename__ = 'ScoresTable'
-# 	uid = db.Column(db.Integer,primary_key=True)
-# 	cid = db.Column(db.Integer)
-# 	score = db.Column(db.Integer)
-# 	def __repr__(self):
-# 		return "<User {}> , < Course {}> , <Score {}>".format(self.uid,self.cid,self.score)
-
+class CoursewareTable(db.Model):
+	__tablename__ = 'courseware'
+	cwid = db.Column(db.Integer,primary_key=True)
+	cid = db.Column(db.Integer,db.ForeignKey('course.cid'))
+	course_name = db.Column(db.String(100))
+	def __repr__(self):
+		return "<Courseware {}>".format(self.cwid)
 
 class HomeworkTable(db.Model):
-	__tablename__ = 'HomeworkTable'
+	__tablename__ = 'homework'
 	hid = db.Column(db.Integer,primary_key=True)
-	cid = db.Column(db.Integer)
-	homework_type = db.Column(db.Integer) # 0 : jupyter , 1: python
+	cid = db.Column(db.Integer,db.ForeignKey('course.cid'))
+	htype = db.Column(db.Integer) # 0 : jupyter , 1: python
 	homework_desc = db.Column(db.String(500))
-	homework_train_data_url = db.Column(db.String(100))
-	homework_test_data_url = db.Column(db.String(100))
-	homework_begin_time = db.Column(db.DateTime)
+	homework_begin_time = db.Column(db.Integer)
+
+	# 建立和 file 的一对多关系
+	files = db.relationship('FileTable')
+
+class FileTable(db.Model):
+	__tablename__ = 'file'
+	fid = db.Column(db.Integer,primary_key = True)
+	hid = db.Column(db.Integer,db.ForeignKey('homework.hid'))
+	ftype = db.Column(db.String(20))
+	filename = db.Column(db.String(100))
 
 class UserHomeworkTable(db.Model):
-	__tablename__ = 'UserHomeworkTable'
+	__tablename__ = 'user_homework'
 	hid = db.Column(db.Integer,primary_key=True)
 	uid = db.Column(db.Integer,primary_key=True)
-	homework_score = db.Column(db.Integer)
-
-
+	score = db.Column(db.Integer)
+	is_finished = db.Column(db.Boolean)
+	submit_file_name = db.Column(db.String(100))
+	submit_time = db.Column(db.Integer)

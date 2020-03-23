@@ -9,7 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_restful import Api,Resource,fields,marshal_with,marshal_with_field,reqparse
 from flask_login import LoginManager,UserMixin,login_user, logout_user, current_user, login_required
-from models import UserTable,CourseTable,HomeworkTable,UserHomeworkTable
+from models import UserTable,CourseTable,CoursewareTable,HomeworkTable,FileTable,UserHomeworkTable
 from extensions import db,login_manager
 from APIS.auth import Login,Register,Logout
 
@@ -57,7 +57,7 @@ def initdb(drop):
 # 定义 shell 上下文
 @app.shell_context_processor
 def make_shell_context():
-	return dict(db=db, UserTable=UserTable,CourseTable = CourseTable,HomeworkTable = HomeworkTable,UserHomeworkTable = UserHomeworkTable)
+	return dict(db=db, UserTable=UserTable,CourseTable = CourseTable,CoursewareTable = CoursewareTable,HomeworkTable = HomeworkTable,FileTable = FileTable,UserHomeworkTable = UserHomeworkTable)
 
 
 # 添加 API
