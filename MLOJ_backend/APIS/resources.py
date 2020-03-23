@@ -79,6 +79,7 @@ class HomeworkAPI(Resource):
 class DatasetAPI(Resource):
 
 	def get(self):
+		# TODO ：验证用户身份，不允许学生下载 standard 文件
 		pass
 
 	def post(self):
@@ -106,3 +107,6 @@ class ScoreAPI(Resource):
 
 
 
+# util 辅助函数
+
+# 上传文件
