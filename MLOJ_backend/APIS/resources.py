@@ -49,7 +49,7 @@ class CourcesAPI(Resource):
 
 	# 获取所有课程信息
 	def get(self):
-		pass
+		
 	# 新建一个课程
 	def post(self):
 		pass
@@ -79,9 +79,33 @@ class CourseAPI(Resource):
 	def serialize_course(self,course):
 		return course
 
-	# 获取某课程
+	# 获取某课程的信息
 	def get(self):
-		pass
+		# 新建解析器对象，用来获取request中的参数
+		parse = reqparse.RequestParser()
+		# 检查request中的cid，如果为int，则加入到parse对象中，如果不为int，返回‘错误的cid’
+		parse.add_argument('cid',type=int,help='错误的cid',default='1')
+		# 将parse对象中的参数读取到args中
+		args = parse.parse_args()
+		# 获取args中的cid
+		cid = args.get('cid') # 现在算是成功把request中的cid存入到cid变量里了
+
+		try:
+			# 从数据库中读取指定course对抗
+			course = CourseTable.query.get(cid)
+		except:
+			# 如果获取失败，则返回错误
+			return jsonify(code = 11,message='node not exist, query fail')
+
+		# 由于我对try 机制不太了解，所以在这又加了一道判断
+		if course == None:
+			return jsonify(code = 11,message='node not exist, query fail')
+		# 返回得到的course对象，这里的course是model对象，不可序列化，所以不能直接放入返回的json里面
+		# 需要把course中的各个字段对应放到一个dict里面，这个功能上面封装成了serialize_course函数
+		# 具体详见  https://wangbei.xyz/2020/03/26/flask-model%E5%AF%B9%E8%B1%A1%E8%BD%ACjson/
+		return jsonify(code=0,message='OK', data = self.serialize_course(course) ) 
+
+
 	# 修改某课程
 	def put(self):
 		pass
@@ -110,6 +134,7 @@ class CoursewareAPI(Resource):
 
 	def delete(self):
 		pass
+
 # /api/course/homeworks?cid=xxx
 class HomeworksAPI(Resource):
 	homework_fields={
@@ -187,6 +212,7 @@ class DatasetAPI(Resource):
 
 	def delete(self):
 		pass
+
 # /api/user/course/homework?uid=xxx&hid=xxx
 # 学生提交的作业
 class StudentHomeworkAPI(Resource):
@@ -207,6 +233,7 @@ class StudentHomeworkAPI(Resource):
 	# 某学生上传某作业
 	def post(self):
 		pass
+
 # /api/course/homework/score?uid=xxx&hid=xxx
 class ScoreAPI(Resource):
 	user_homework_fields = {
