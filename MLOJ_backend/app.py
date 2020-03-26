@@ -49,7 +49,7 @@ def initdb(drop):
 		click.echo('Drop tables')
 	db.create_all()
 	# 在数据库中存储一个默认根目录 root  id = 0
-	admin = UserTable(uid=123456,password_hash = generate_password_hash('123456'),is_admin=True)
+	admin = UserTable(uid=123456,password_hash = generate_password_hash('123456'),is_admin=1)
 	db.session.add(admin)
 	db.session.commit()
 	click.echo('Initialized database.')

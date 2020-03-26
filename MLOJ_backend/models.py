@@ -12,7 +12,7 @@ class UserTable(UserMixin,db.Model):
 	uid = db.Column(db.Integer,primary_key=True)
 	password_hash = db.Column(db.String(200), nullable=False)
 	username = db.Column(db.String(20))
-	is_admin = db.Column(db.Boolean, default=False)
+	is_admin = db.Column(db.Integer, default=0)
 	def get_id(self):
 		return self.uid
 	def get_is_admin(self):
@@ -77,6 +77,6 @@ class UserHomeworkTable(db.Model):
 	hid = db.Column(db.Integer,primary_key=True)
 	uid = db.Column(db.Integer,primary_key=True)
 	score = db.Column(db.Integer)
-	is_finished = db.Column(db.Boolean)
+	is_finished = db.Column(db.Integer,default = 0)
 	submit_file_name = db.Column(db.String(100))
 	submit_time = db.Column(db.Integer)

@@ -21,6 +21,32 @@ RESOURCES_FOLDER = config['RESOURCES_FOLDER']
 
 # /api/courses
 class CourcesAPI(Resource):
+	# 设定course对象的字典格式
+	course_fields={
+		'cid':fields.Integer,
+		'course_name':fields.String,
+		'course_desc':fields.String,
+		'course_begin_time':fields.Integer,
+		# 由于course与courseware是一对多关系，一个course对应多个courseware，course对象会存储对应的courseware组成的数组
+		'coursewares':fields.List(fields.Nested({
+				'cwid':fields.Integer,
+				'cid':fields.Integer,
+				'course_name':fields.String
+			})),
+		'homeworks':fields.List(fields.Nested({
+				'hid':fields.Integer,
+				'cid':fields.Integer,
+				'htype':fields.Integer,
+				'homework_desc':filename.String,
+				'homework_begin_time':fields,Integer
+			}))
+	}
+	# 工具函数，将Course对象按照course_fields所规定的字典格式json化为字典
+	@marshal_with(course_fields)
+	def serialize_course(self,course):
+		return course
+
+
 	# 获取所有课程信息
 	def get(self):
 		pass
@@ -31,6 +57,27 @@ class CourcesAPI(Resource):
 
 # /api/course?cid=xxx
 class CourseAPI(Resource):
+	course_fields={
+		'cid':fields.Integer,
+		'course_name':fields.String,
+		'course_desc':fields.String,
+		'course_begin_time':fields.Integer,
+		'coursewares':fields.List(fields.Nested({
+				'cwid':fields.Integer,
+				'cid':fields.Integer,
+				'course_name':fields.String
+			})),
+		'homeworks':fields.List(fields.Nested({
+				'hid':fields.Integer,
+				'cid':fields.Integer,
+				'htype':fields.Integer,
+				'homework_desc':filename.String,
+				'homework_begin_time':fields,Integer
+			}))
+	}
+	@marshal_with(course_fields)
+	def serialize_course(self,course):
+		return course
 
 	# 获取某课程
 	def get(self):
@@ -44,6 +91,16 @@ class CourseAPI(Resource):
 
 # /api/courseware?cid=xxx
 class CoursewareAPI(Resource):
+	courseware_fields={
+		'cwid':fields.Integer,
+		'cid':fields.Integer,
+		'course_name':fields.String
+	}
+	@marshal_with(courseware_fields)
+	def serialize_courseware(self,courseware):
+		return courseware
+
+
 	# 下载课件
 	def get(self):
 		pass
@@ -55,6 +112,23 @@ class CoursewareAPI(Resource):
 		pass
 # /api/course/homeworks?cid=xxx
 class HomeworksAPI(Resource):
+	homework_fields={
+		'hid':fields.Integer,
+		'cid':fields.Integer,
+		'htype':fields.Integer,
+		'homework_desc':filename.String,
+		'homework_begin_time':fields.Integer,
+		'files':fields.List(fields.Nested({
+				'hid':fields.Integer,
+				'cid':fields.Integer,
+				'htype':fields.Integer,
+				'homework_desc':filename.String,
+				'homework_begin_time':fields,Integer
+			}))
+	}
+	@marshal_with(homework_fields)
+	def serialize_homework(self,homework):
+		return homework
 	# 获取所有作业信息
 	def get(self):
 		pass
@@ -64,6 +138,23 @@ class HomeworksAPI(Resource):
 
 # /api/course/homework?hid=xxx
 class HomeworkAPI(Resource):
+	homework_fields={
+		'hid':fields.Integer,
+		'cid':fields.Integer,
+		'htype':fields.Integer,
+		'homework_desc':filename.String,
+		'homework_begin_time':fields.Integer,
+		'files':fields.List(fields.Nested({
+				'hid':fields.Integer,
+				'cid':fields.Integer,
+				'htype':fields.Integer,
+				'homework_desc':filename.String,
+				'homework_begin_time':fields,Integer
+			}))
+	}
+	@marshal_with(homework_fields)
+	def serialize_homework(self,homework):
+		return homework
 
 	# 获取某作业
 	def get(self):
@@ -77,6 +168,15 @@ class HomeworkAPI(Resource):
 
 # /api/course/homework/datasets?hid=xxx
 class DatasetAPI(Resource):
+	file_fields = {
+		'fid':fields.Integer,
+		'hid':fields.Integer,
+		'ftype':fields.String,
+		'filename':fields.String
+	}
+	@marshal_with(file_fields)
+	def serialize_file(self,file):
+		return file
 
 	def get(self):
 		# TODO ：验证用户身份，不允许学生下载 standard 文件
@@ -90,6 +190,17 @@ class DatasetAPI(Resource):
 # /api/user/course/homework?uid=xxx&hid=xxx
 # 学生提交的作业
 class StudentHomeworkAPI(Resource):
+	user_homework_fields = {
+		'hid':fields.Integer,
+		'uid':fields.Integer,
+		'score':fields.Integer,
+		'is_finished':fields.Integer,
+		'submit_file_name':fields.String,
+		'submit_time':fields.Integer
+	}
+	@marshal_with(user_homework_fields)
+	def serialize_file(self,user_homework):
+		return user_homework
 	# 获取某学生的某作业
 	def get(self):
 		pass
@@ -98,6 +209,17 @@ class StudentHomeworkAPI(Resource):
 		pass
 # /api/course/homework/score?uid=xxx&hid=xxx
 class ScoreAPI(Resource):
+	user_homework_fields = {
+		'hid':fields.Integer,
+		'uid':fields.Integer,
+		'score':fields.Integer,
+		'is_finished':fields.Integer,
+		'submit_file_name':fields.String,
+		'submit_time':fields.Integer
+	}
+	@marshal_with(user_homework_fields)
+	def serialize_file(self,user_homework):
+		return user_homework
 	# get某学生的某作业的分数
 	def get(self):
 		pass
@@ -109,4 +231,14 @@ class ScoreAPI(Resource):
 
 # util 辅助函数
 
-# 上传文件
+# 为file生成文件名
+import hashlib
+def generate_file_name(fid,hid):
+	return hashlib.md5(
+				(str(fid) + '_' + str(hid)).encode('utf-8')).hexdigest()
+
+# 为submit生成文件名
+import hashlib
+def generate_file_name(hid,uid):
+	return hashlib.md5(
+				(str(hid) + '_' + str(uid)).encode('utf-8')).hexdigest()
