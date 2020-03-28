@@ -36,9 +36,7 @@ class CourcesAPI(Resource):
 		'homeworks':fields.List(fields.Nested({
 				'hid':fields.Integer,
 				'cid':fields.Integer,
-				'htype':fields.Integer,
-				'homework_desc':fields.String,
-				'homework_begin_time':fields.Integer
+				'htype':fields.Integer
 			}))
 	}
 	# 工具函数，将Course对象按照course_fields所规定的字典格式json化为字典
@@ -71,8 +69,7 @@ class CourseAPI(Resource):
 				'hid':fields.Integer,
 				'cid':fields.Integer,
 				'htype':fields.Integer,
-				'homework_desc':fields.String,
-				'homework_begin_time':fields.Integer
+
 			}))
 	}
 	@marshal_with(course_fields)
@@ -248,8 +245,6 @@ class HomeworkAPI(Resource):
 				'hid':fields.Integer,
 				'cid':fields.Integer,
 				'htype':fields.Integer,
-				'homework_desc':fields.String,
-				'homework_begin_time':fields.Integer
 			}))
 	}
 	@marshal_with(homework_fields)
