@@ -36,7 +36,9 @@ class CourcesAPI(Resource):
 		'homeworks':fields.List(fields.Nested({
 				'hid':fields.Integer,
 				'cid':fields.Integer,
-				'htype':fields.Integer
+				'htype':fields.Integer,
+				'homework_desc':fields.String,
+				'homework_begin_time':fields.Integer
 			}))
 	}
 	# 工具函数，将Course对象按照course_fields所规定的字典格式json化为字典
@@ -60,6 +62,7 @@ class CourseAPI(Resource):
 		'course_name':fields.String,
 		'course_desc':fields.String,
 		'course_begin_time':fields.Integer,
+		# 由于course与courseware是一对多关系，一个course对应多个courseware，course对象会存储对应的courseware组成的数组
 		'coursewares':fields.List(fields.Nested({
 				'cwid':fields.Integer,
 				'cid':fields.Integer,
@@ -69,7 +72,8 @@ class CourseAPI(Resource):
 				'hid':fields.Integer,
 				'cid':fields.Integer,
 				'htype':fields.Integer,
-
+				'homework_desc':fields.String,
+				'homework_begin_time':fields.Integer
 			}))
 	}
 	@marshal_with(course_fields)
@@ -216,11 +220,10 @@ class HomeworksAPI(Resource):
 		'homework_desc':fields.String,
 		'homework_begin_time':fields.Integer,
 		'files':fields.List(fields.Nested({
+				'fid':fields.Integer,
 				'hid':fields.Integer,
-				'cid':fields.Integer,
-				'htype':fields.Integer,
-				'homework_desc':fields.String,
-				'homework_begin_time':fields.Integer
+				'ftype':fields.String,
+				'filename':fields.String
 			}))
 	}
 	@marshal_with(homework_fields)
@@ -242,9 +245,10 @@ class HomeworkAPI(Resource):
 		'homework_desc':fields.String,
 		'homework_begin_time':fields.Integer,
 		'files':fields.List(fields.Nested({
+				'fid':fields.Integer,
 				'hid':fields.Integer,
-				'cid':fields.Integer,
-				'htype':fields.Integer,
+				'ftype':fields.String,
+				'filename':fields.String
 			}))
 	}
 	@marshal_with(homework_fields)
