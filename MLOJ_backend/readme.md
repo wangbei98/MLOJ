@@ -1,4 +1,4 @@
-[TOC]
+pi[TOC]
 
 
 ## 运行
@@ -72,3 +72,24 @@ MLOJ_backend
 | 分数       | /api/course/homework/score?uid=xxx&hid=xxx     | 老师：POST(score=xxxx) 为这个人的这个作业打分<br>GET（获取分数） | P2       |
 | 注册       | /api/register                                  | POST (uid=xx,username=xx) 注册                               | P0       |
 | 登录       | /api/login                                     | POST(uid=xxx,password=xx)登录                                | P0       |
+
+## 返回值协议
+
+| code | message                       | Data | 说明                       |
+| ---- | ----------------------------- | ---- | -------------------------- |
+| 0    | ok                            |      | 成功                       |
+| 10   | database error                |      | 未知数据库错误             |
+| 11   | node not exist, query fail    |      | 当前节点在数据库中不存在   |
+| 12   | node already exist, add fail  |      | 目标节点已经存在，插入失败 |
+|      |                               |      |                            |
+| 20   | File error                    |      | 未知文件错误               |
+| 21   | file already exist, save fail |      | 文件已存在，保存失败       |
+| 22   | file not exist                |      | 目标文件不存在             |
+| 23   | illegal filename              |      | 文件名不合法               |
+| 24   | preview  not allowed          |      | 文件不支持预览             |
+| 25   | delete fail                   |      | 删除数据失败               |
+| 26   | commit fail                   |      | 数据库提交更改失败         |
+| 27   | modify fail                   |      | 修改失败                   |
+
+​	
+

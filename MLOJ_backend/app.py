@@ -12,7 +12,7 @@ from flask_login import LoginManager,UserMixin,login_user, logout_user, current_
 from models import UserTable,CourseTable,CoursewareTable,HomeworkTable,FileTable,UserHomeworkTable
 from extensions import db,login_manager
 from APIS.auth import Login,Register,Logout
-
+from APIS.resources import CourseAPI
 # from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 # from itsdangerous import SignatureExpired, BadSignature
 
@@ -64,4 +64,4 @@ def make_shell_context():
 api.add_resource(Login, '/api/login', endpoint='login')
 api.add_resource(Register, '/api/register', endpoint='register')
 api.add_resource(Logout,'/api/logout',endpoint='logout')
-
+api.add_resource(CourseAPI,'/api/course',endpoint='courseapi')
