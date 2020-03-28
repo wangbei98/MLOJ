@@ -86,10 +86,10 @@ MLOJ_backend
 | 21   | file already exist, save fail |      | 文件已存在，保存失败       |
 | 22   | file not exist                |      | 目标文件不存在             |
 | 23   | illegal filename              |      | 文件名不合法               |
-|      | preview  not allowed          |      | 文件不支持预览             |
-|      | delete fail                   |      | 删除数据失败               |
-|      | commit fail                   |      | 数据库提交更改失败         |
-|      | modify fail                   |      | 修改失败                   |
+| 24   | preview  not allowed          |      | 文件不支持预览             |
+| 25   | delete fail                   |      | 删除数据失败               |
+| 26   | commit fail                   |      | 数据库提交更改失败         |
+| 27   | modify fail                   |      | 修改失败                   |
 
 ​	
 
