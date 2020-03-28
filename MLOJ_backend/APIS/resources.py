@@ -37,8 +37,8 @@ class CourcesAPI(Resource):
 				'hid':fields.Integer,
 				'cid':fields.Integer,
 				'htype':fields.Integer,
-				'homework_desc':filename.String,
-				'homework_begin_time':fields,Integer
+				'homework_desc':fields.String,
+				'homework_begin_time':fields.Integer
 			}))
 	}
 	# 工具函数，将Course对象按照course_fields所规定的字典格式json化为字典
@@ -49,7 +49,7 @@ class CourcesAPI(Resource):
 
 	# 获取所有课程信息
 	def get(self):
-		
+		pass
 	# 新建一个课程
 	def post(self):
 		pass
@@ -71,8 +71,8 @@ class CourseAPI(Resource):
 				'hid':fields.Integer,
 				'cid':fields.Integer,
 				'htype':fields.Integer,
-				'homework_desc':filename.String,
-				'homework_begin_time':fields,Integer
+				'homework_desc':fields.String,
+				'homework_begin_time':fields.Integer
 			}))
 	}
 	@marshal_with(course_fields)
@@ -103,15 +103,90 @@ class CourseAPI(Resource):
 		# 返回得到的course对象，这里的course是model对象，不可序列化，所以不能直接放入返回的json里面
 		# 需要把course中的各个字段对应放到一个dict里面，这个功能上面封装成了serialize_course函数
 		# 具体详见  https://wangbei.xyz/2020/03/26/flask-model%E5%AF%B9%E8%B1%A1%E8%BD%ACjson/
-		return jsonify(code=0,message='OK', data = self.serialize_course(course) ) 
+		return jsonify(code=0,message='OK', data = self.serialize_course(course) )
 
 
 	# 修改某课程
 	def put(self):
-		pass
+		# 新建解析器对象，用来获取request中的参数
+		parse = reqparse.RequestParser()
+		# 检查request中的cid，如果为int，则加入到parse对象中，如果不为int，返回‘错误的cid’
+		parse.add_argument('cid',type=int,help='错误的cid',default='1')
+		parse.add_argument("coursename", type=str,required=True, help='coursename cannot be blank!')
+		parse.add_argument("desc", type=str, required=True, help='coursedesc cannot be blank!')
+		# 将parse对象中的参数读取到args中
+		args = parse.parse_args()
+		# 获取args中的cid
+		cid = args.get('cid') # 现在算是成功把request中的cid存入到cid变量里了
+
+		try:
+			# 从数据库中读取指定course记录
+			course = CourseTable.query.get(cid)
+		except:
+			# 如果获取失败，则返回错误
+			return jsonify(code = 27,message='modify fail')
+
+		# 当前数据库节点不存在
+		if course == None:
+			return jsonify(code = 27,message='modify fail')
+		# 当前数据库节点存在，修改
+		else:
+			try:
+				course["course_name"] = args["coursename"]
+			except:
+			# 如果修改失败，则返回错误
+				return jsonify(code = 27,message='modify fail')
+
+			try:
+				course["course_desc"] = args["desc"]
+			except:
+			# 如果修改失败，则返回错误
+				return jsonify(code = 27,message='modify fail')
+
+			try:
+				db.session.commit()
+			except:
+				return jsonify(code = 26,message='commit fail')
+
+		return jsonify(code=0,message='OK')
+
+
+
 	# 删除某课程
 	def delete(self):
-		pass
+		# 新建解析器对象，用来获取request中的参数
+		parse = reqparse.RequestParser()
+		# 检查request中的cid，如果为int，则加入到parse对象中，如果不为int，返回‘错误的cid’
+		parse.add_argument('cid',type=int,help='错误的cid',default='1')
+		# 将parse对象中的参数读取到args中
+		args = parse.parse_args()
+		# 获取args中的cid
+		cid = args.get('cid') # 现在算是成功把request中的cid存入到cid变量里了
+
+		try:
+			# 从数据库中读取指定course记录
+			course = CourseTable.query.get(cid)
+		except:
+			# 如果获取失败，则返回错误
+			return jsonify(code = 25,message='delete fail')
+
+		# 当前数据库节点不存在
+		if course == None:
+			return jsonify(code = 25,message='delete fail')
+		# 当前数据库节点存在
+		else:
+			try:
+				db.session.delete(course)
+			except:
+				return jsonify(code = 25,message='delete fail')
+
+			try:
+				db.session.commit()
+			except:
+				return jsonify(code = 26,message='commit fail')
+
+		return jsonify(code=0,message='OK')
+
 
 # /api/courseware?cid=xxx
 class CoursewareAPI(Resource):
@@ -141,14 +216,14 @@ class HomeworksAPI(Resource):
 		'hid':fields.Integer,
 		'cid':fields.Integer,
 		'htype':fields.Integer,
-		'homework_desc':filename.String,
+		'homework_desc':fields.String,
 		'homework_begin_time':fields.Integer,
 		'files':fields.List(fields.Nested({
 				'hid':fields.Integer,
 				'cid':fields.Integer,
 				'htype':fields.Integer,
-				'homework_desc':filename.String,
-				'homework_begin_time':fields,Integer
+				'homework_desc':fields.String,
+				'homework_begin_time':fields.Integer
 			}))
 	}
 	@marshal_with(homework_fields)
@@ -167,14 +242,14 @@ class HomeworkAPI(Resource):
 		'hid':fields.Integer,
 		'cid':fields.Integer,
 		'htype':fields.Integer,
-		'homework_desc':filename.String,
+		'homework_desc':fields.String,
 		'homework_begin_time':fields.Integer,
 		'files':fields.List(fields.Nested({
 				'hid':fields.Integer,
 				'cid':fields.Integer,
 				'htype':fields.Integer,
-				'homework_desc':filename.String,
-				'homework_begin_time':fields,Integer
+				'homework_desc':fields.String,
+				'homework_begin_time':fields.Integer
 			}))
 	}
 	@marshal_with(homework_fields)
