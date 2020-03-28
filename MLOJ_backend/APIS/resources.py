@@ -167,7 +167,7 @@ class HomeworkAPI(Resource):
 		'hid':fields.Integer,
 		'cid':fields.Integer,
 		'htype':fields.Integer,
-		'homework_desc':filename.String,
+		'homework_desc':fields.String,
 		'homework_begin_time':fields.Integer,
 		'files':fields.List(fields.Nested({
 				'hid':fields.Integer,
