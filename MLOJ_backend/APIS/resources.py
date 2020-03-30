@@ -46,13 +46,40 @@ class CourcesAPI(Resource):
 	def serialize_course(self,course):
 		return course
 
-
 	# 获取所有课程信息
 	def get(self):
 		pass
 	# 新建一个课程
 	def post(self):
-		pass
+		# 新建解释器对象，用来获取request中的对象
+		parse = reqparse.RequestParser()
+		# 检查request中的coursename，str类型不为空
+		parse.add_argument("coursename", type=str, required=True, help='coursename cannot be blank!')
+		# 检查request中的desc，str类型不为空
+		parse.add_argument("desc", type=str, required=True, help='coursedesc cannot be blank!')
+		# 将parse对象中的参数读取到args中
+		args = parse.parse_args()
+		# new
+		course = CourseTable()
+		# 获取coursename
+		course.course_name = args.get('coursename')
+		# 获取desc
+		course.course_desc = args.get('desc')
+		# 获取begin_time
+		course.course_begin_time = int(time.time())
+
+		try:
+			db.session.add(course)
+		except:
+			# 如果插入失败，则返回错误
+			return jsonify(code = 28,message = 'insert fail')
+
+		try:
+			db.session.commit()
+		except:
+			return jsonify(code = 26,message = 'insert success, but commit fail')
+
+		return jsonify(code = 0, message ="OK" , data = { 'course' :  self.serialize_course( course )} )
 
 
 # /api/course?cid=xxx
