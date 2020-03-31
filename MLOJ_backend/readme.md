@@ -85,9 +85,8 @@ MLOJ_backend
 | 23   | illegal filename              |      | 文件名不合法               |
 | 24   | preview  not allowed          |      | 文件不支持预览             |
 | 25   | delete fail                   |      | 删除数据失败               |
-| 26   | commit fail                   |      | 数据库提交更改失败         |
-| 27   | modify fail                   |      | 修改失败                   |
-| 28   | insert fail                   |      | 插入失败                   |
+| 26   | modify fail                   |      | 修改失败                   |
+| 27   | insert fail                   |      | 插入失败                   |
 
 ​	
 
