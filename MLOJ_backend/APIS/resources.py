@@ -20,6 +20,7 @@ RESOURCES_FOLDER = config['RESOURCES_FOLDER']
 '''
 
 # /api/courseware?cwid=xxx
+
 class CoursewareAPI(Resource):
     courseware_fields = {
         'cwid': fields.Integer,
@@ -108,6 +109,7 @@ class HomeworkAPI(Resource):
         pass
 
 # /api/homework/datasets?hid=xxx&type=xxx
+
 
 
 class DatasetAPI(Resource):
