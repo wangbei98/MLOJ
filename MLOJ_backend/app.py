@@ -25,9 +25,6 @@ else:
 
 app = Flask(__name__)
 
-# 反向代理
-from werkzeug.contrib.fixers import ProxyFix
-app.wsgi_app = ProxyFix(app.wsgi_app)
 
 # 定义一些参数
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'secret string')
