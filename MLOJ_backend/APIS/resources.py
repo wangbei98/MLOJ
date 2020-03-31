@@ -9,7 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_restful import Api, Resource, fields, marshal_with, marshal_with_field, reqparse
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
-from models import UserTable,HomeworkTable, UserHomeworkTable
+from models import UserTable, HomeworkTable, UserHomeworkTable
 from extensions import db, login_manager
 from settings import config
 # 获取配置文件中定义的资源目录
@@ -20,6 +20,7 @@ RESOURCES_FOLDER = config['RESOURCES_FOLDER']
 '''
 
 # /api/courseware?cwid=xxx
+
 
 class CoursewareAPI(Resource):
     courseware_fields = {
@@ -42,9 +43,9 @@ class CoursewareAPI(Resource):
     def delete(self):
         pass
 
+# /app_template_filter()
+
 # /api/homeworks
-
-
 class HomeworksAPI(Resource):
     homework_fields = {
         'hid': fields.Integer,
@@ -71,7 +72,30 @@ class HomeworksAPI(Resource):
     # 新建课程
 
     def post(self):
-        pass
+        # 新建解释器对象，用来获取request中的对象
+        parse = reqparse.RequestParser()
+        # 检查request中的htype，如果为int，则加入到parse对象中，如果不为int，返回‘错误的htype’
+        parse.add_argument('type', type=int, help='错误的htype', default='1')
+        # 检查request中的homeworkname，str类型不为空
+        parse.add_argument(
+            "homeworkname", type=str, required=True, help='homeworkname cannot be blank!')
+        # 检查request中的desc，str类型不为空
+        parse.add_argument(
+            "desc", type=str, required=True, help='homework_desc cannot be blank!')
+        # 将parse对象中的参数读取到args中
+        args = parse.parse_args()
+        # new
+        homework = HomeworkTable(htype=args.get('type'),homeworkname=args.get('homeworkname'),
+                                 homework_desc=args.get('desc'),homework_begin_time = int(time.time()))
+
+        try:
+            db.session.add(homework)
+            db.session.commit()
+        except:
+            # 如果插入失败，则返回错误
+            return jsonify(code=27, message='insert fail')
+
+        return jsonify(code=0, message="OK", data={'homework':  self.serialize_homework(homework)})
 
 # /api/homework?hid=xxx
 
@@ -109,7 +133,6 @@ class HomeworkAPI(Resource):
         pass
 
 # /api/homework/datasets?hid=xxx&type=xxx
-
 
 
 class DatasetAPI(Resource):
