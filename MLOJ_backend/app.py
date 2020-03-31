@@ -9,10 +9,10 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_restful import Api,Resource,fields,marshal_with,marshal_with_field,reqparse
 from flask_login import LoginManager,UserMixin,login_user, logout_user, current_user, login_required
-from models import UserTable,CourseTable,CoursewareTable,HomeworkTable,FileTable,UserHomeworkTable
+from models import UserTable,HomeworkTable,FileTable,UserHomeworkTable
 from extensions import db,login_manager
 from APIS.auth import Login,Register,Logout
-from APIS.resources import CourseAPI,CourcesAPI
+#from APIS.resources import CourseAPI,CourcesAPI
 # from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 # from itsdangerous import SignatureExpired, BadSignature
 
@@ -57,12 +57,10 @@ def initdb(drop):
 # 定义 shell 上下文
 @app.shell_context_processor
 def make_shell_context():
-	return dict(db=db, UserTable=UserTable,CourseTable = CourseTable,CoursewareTable = CoursewareTable,HomeworkTable = HomeworkTable,FileTable = FileTable,UserHomeworkTable = UserHomeworkTable)
+	return dict(db=db, UserTable=UserTable,HomeworkTable = HomeworkTable,FileTable = FileTable,UserHomeworkTable = UserHomeworkTable)
 
 
 # 添加 API
 api.add_resource(Login, '/api/login', endpoint='login')
 api.add_resource(Register, '/api/register', endpoint='register')
 api.add_resource(Logout,'/api/logout',endpoint='logout')
-api.add_resource(CourseAPI,'/api/course',endpoint='courseapi')
-api.add_resource(CourcesAPI,'/api/courses',endpoint='couecesapi')
