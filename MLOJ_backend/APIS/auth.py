@@ -117,6 +117,7 @@ class GetCurUserAPI(Resource):
             return response
         else:
             response = make_response(jsonify(code = 35,message = 'get current_user fail'))
+            return response
 
 class Logout(Resource):
 
