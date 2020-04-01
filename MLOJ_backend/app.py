@@ -12,7 +12,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, curren
 from models import UserTable, HomeworkTable, FileTable, UserHomeworkTable
 from extensions import db, login_manager
 from APIS.auth import Login, Register, Logout
-from APIS.resources import HomeworksAPI
+from APIS.resources import HomeworksAPI,HomeworkAPI
 # from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 # from itsdangerous import SignatureExpired, BadSignature
 
@@ -72,3 +72,4 @@ api.add_resource(Login, '/api/login', endpoint='login')
 api.add_resource(Register, '/api/register', endpoint='register')
 api.add_resource(Logout, '/api/logout', endpoint='logout')
 api.add_resource(HomeworksAPI,'/api/homeworks',endpoint='homeworks')
+api.add_resource(HomeworkAPI,'/api/homework',endpoint='homework')
