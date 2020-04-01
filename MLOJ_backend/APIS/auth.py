@@ -20,11 +20,19 @@ from extensions import db, login_manager
 
 # 定义API类
 class Login(Resource):
-
+    user_fields = {
+        'uid' : fields.Integer,
+        'username' : fields.String,
+        'is_admin' : fields.Integer
+    }
+    @marshal_with(user_fields)
+    def serialize_user(self,user):
+        return user
     def post(self):
         if current_user.is_authenticated:
             # TODO
-            return jsonify('already authenticated')
+            response = make_response(jsonify(code=32,message = 'already authenticated'))
+            return response
         parse = reqparse.RequestParser()
         parse.add_argument('uid', type=int, help='用户名验证不通过', default=201000000)
         parse.add_argument('password', type=str, help='密码验证不通过')
@@ -37,7 +45,8 @@ class Login(Resource):
         except Exception:
             print("{} User query: {} failure......".format(
                 time.strftime("%Y-%m-%d %H:%M:%S"), uid))
-            return jsonify('user not found')
+            response = make_response(jsonify(code = 31,message = 'user not found'))
+            return response
         else:
             print("{} User query: {} success...".format(
                 time.strftime("%Y-%m-%d %H:%M:%S"), uid))
@@ -47,16 +56,25 @@ class Login(Resource):
             login_user(user)
             print('current_user : ')
             print(current_user)
-            return jsonify('login success')
+            response = jsonify(code = 0,message = 'login success',data ={'user': self.serialize_user(user)})
+            response.set_cookie('token',token)
         else:
-            print('in if')
             print("{} User query: {} failure...".format(
                 time.strftime("%Y-%m-%d %H:%M:%S"), uid))
             print('user is None or password False')
-            return jsonify('login fail')
+            response = make_response(jsonify(code = 33,message = 'login fail'))
+            return response
 
 
 class Register(Resource):
+    user_fields = {
+        'uid' : fields.Integer,
+        'username' : fields.String,
+        'is_admin' : fields.Integer
+    }
+    @marshal_with(user_fields)
+    def serialize_user(self,user):
+        return user
 
     def post(self):
         parse = reqparse.RequestParser()
@@ -75,25 +93,38 @@ class Register(Resource):
             print("{} User add: {} failure...".format(
                 time.strftime("%Y-%m-%d %H:%M:%S"), uid))
             db.session.rollback()
-            return jsonify('user add fail')
+            response = make_response(jsonify(code=34,message = 'user add fail'))
+            return response
         else:
             print("{} User add: {} success...".format(
                 time.strftime("%Y-%m-%d %H:%M:%S"), uid))
-            return jsonify('user add success')
+            response = make_response(jsonify(code = 0, message = 'user add success' , data ={'user': self.serialize_user(user)}))
+            return response
         finally:
             db.session.close()
 
+class GetCurUserAPI(Resource):
+    user_fields = {
+        'uid' : fields.Integer,
+        'email' : fields.String,
+    }
+    @marshal_with(user_fields)
+    def serialize_user(self,user):
+        return user
+    def get(self):
+        if current_user.is_authenticated:
+            response = make_response(jsonify(code = 0,message = 'get current_user success',data ={'user':self.serialize_user(current_user)}))
+            return response
+        else:
+            response = make_response(jsonify(code = 35,message = 'get current_user fail'))
 
 class Logout(Resource):
 
     @login_required
     def logout(self):
-        print(current_user)
-        print("已退出登录")
         logout_user()
-        print(current_user.is_authenticated)
         return True
-
     def get(self):
         if self.logout():
-            return jsonify('logout success')
+            response = make_response(jsonify(code = 0,message = 'logout success'))
+            return response

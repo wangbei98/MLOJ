@@ -11,7 +11,7 @@ from flask_restful import Api, Resource, fields, marshal_with, marshal_with_fiel
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 from models import UserTable, HomeworkTable, FileTable, UserHomeworkTable
 from extensions import db, login_manager
-from APIS.auth import Login, Register, Logout
+from APIS.auth import Login, Register, Logout,GetCurUserAPI
 from APIS.resources import HomeworksAPI,HomeworkAPI
 # from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 # from itsdangerous import SignatureExpired, BadSignature
@@ -71,5 +71,7 @@ def make_shell_context():
 api.add_resource(Login, '/api/login', endpoint='login')
 api.add_resource(Register, '/api/register', endpoint='register')
 api.add_resource(Logout, '/api/logout', endpoint='logout')
+api.add_resource(GetCurUserAPI,'/api/user/getcur',endpoint = 'getcur')
+
 api.add_resource(HomeworksAPI,'/api/homeworks',endpoint='homeworks')
 api.add_resource(HomeworkAPI,'/api/homework',endpoint='homework')

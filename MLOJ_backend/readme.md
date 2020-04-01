@@ -58,17 +58,19 @@ MLOJ_backend
 
 
 
-| 资源       | URL                                       | 实现方法/对应功能                                            | 实现等级 |
-| ---------- | ----------------------------------------- | ------------------------------------------------------------ | -------- |
-| 当前用户   | /api/user                                 | 学生：GET(获取当前用户的信息)                                | P3       |
-| 课件       | /api/courseware?cwid=xxx                  | 学生&老师：GET下载cwid=xxx的课件<br/>老师：POST(file=xxx) 上传 <br>老师：DELETE删除课件 | P1       |
-| 单个作业题 | /api/homework?hid=xxx                     | 学生&老师：GET 获取<br/>老师：PUT (homeworkname=xxx,homeworkdesc=xxx,type=1)修改<br/>老师：DELETE 删除 | P1       |
-| 所有作业题 | /api/homeworks                            | 学生&老师：GET 获取全部作业题的信息<br/>老师：POST(homeworkname=xxx,homeworkdesc=xxx,type=x)为homework为xxx的课程新建作业题，作业题类型为x | P1       |
-| 数据集     | /api/homework/datasets?hid=xxx&type=xxx   | 学生&老师：GET 获取xxx作业题对应的数据集<br/>老师：POST(file=xx)为xxx上传数据集<br/>老师：DELETE删除数据集 | P2       |
-| 作业       | /api/user/course/homework?uid=xxx&hid=xxx | 学生&老师：GET获取xxx学生的xxx作业信息<br/>学生：POST(file=xxx) 这个学生提交这次作业的答案 | P2       |
-| 分数       | /api/homework/score?uid=xxx&hid=xxx       | 老师：POST(score=xxxx) 为这个人的这个作业打分<br>GET（获取分数） | P2       |
-| 注册       | /api/register                             | POST (uid=xx,username=xx) 注册                               | P0       |
-| 登录       | /api/login                                | POST(uid=xxx,password=xx)登录                                | P0       |
+| 资源       | URL                                       | 实现方法/对应功能                                            | 实现等级 | 服务端是否完成部署 |
+| ---------- | ----------------------------------------- | ------------------------------------------------------------ | -------- | ------------------ |
+| 注册       | /api/register                             | POST (uid=xx,username=xx) 注册                               | P0       |                    |
+| 登录       | /api/login                                | POST(uid=xxx,password=xx)登录                                | P0       |                    |
+| 登出       | /api/logout                               | GET                                                          | P0       |                    |
+| 当前用户   | /api/user                                 | 学生：GET(获取当前用户的信息)                                | P3       |                    |
+| 课件       | /api/courseware?cwid=xxx                  | 学生&老师：GET下载cwid=xxx的课件<br/>老师：POST(file=xxx) 上传 <br>老师：DELETE删除课件 | P1       |                    |
+| 单个作业题 | /api/homework?hid=xxx                     | 学生&老师：GET 获取<br/>老师：PUT (homeworkname=xxx,homeworkdesc=xxx,type=1)修改<br/>老师：DELETE 删除 | P1       |                    |
+| 所有作业题 | /api/homeworks                            | 学生&老师：GET 获取全部作业题的信息<br/>老师：POST(homeworkname=xxx,homeworkdesc=xxx,type=x)为homework为xxx的课程新建作业题，作业题类型为x | P1       |                    |
+| 数据集     | /api/homework/datasets?hid=xxx&type=xxx   | 学生&老师：GET 获取xxx作业题对应的数据集<br/>老师：POST(file=xx)为xxx上传数据集<br/>老师：DELETE删除数据集 | P2       |                    |
+| 作业       | /api/user/course/homework?uid=xxx&hid=xxx | 学生&老师：GET获取xxx学生的xxx作业信息<br/>学生：POST(file=xxx) 这个学生提交这次作业的答案 | P2       |                    |
+| 分数       | /api/homework/score?uid=xxx&hid=xxx       | 老师：POST(score=xxxx) 为这个人的这个作业打分<br>GET（获取分数） | P2       |                    |
+
 
 ## 返回值协议
 
@@ -87,6 +89,16 @@ MLOJ_backend
 | 25   | delete fail                   |      | 删除数据失败               |
 | 26   | modify fail                   |      | 修改失败                   |
 | 27   | insert fail                   |      | 插入失败                   |
+|      |                               |      |                            |
+| 30   | user error                     |      | 用户相关错误               |
+| 31   | user not found                 |      | 用户不存在                 |
+| 32   | already authenticated          |      | 用户已经登录               |
+| 33   | login fail                     |      | 登录失败                   |
+| 34   | user add fail                  |      |                            |
+| 35   | get current_user fail          |      |                            |
+|      |                               |      |                            |
+|      |                               |      |                            |
+|      |                               |      |                            |
 
 ​	
 
