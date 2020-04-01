@@ -46,6 +46,8 @@ class CoursewareAPI(Resource):
 # /app_template_filter()
 
 # /api/homeworks
+
+
 class HomeworksAPI(Resource):
     homework_fields = {
         'hid': fields.Integer,
@@ -85,8 +87,8 @@ class HomeworksAPI(Resource):
         # 将parse对象中的参数读取到args中
         args = parse.parse_args()
         # new
-        homework = HomeworkTable(htype=args.get('type'),homeworkname=args.get('homeworkname'),
-                                 homework_desc=args.get('desc'),homework_begin_time = int(time.time()))
+        homework = HomeworkTable(htype=args.get('type'), homeworkname=args.get(
+            'homeworkname'), homework_desc=args.get('desc'), homework_begin_time=int(time.time()))
 
         try:
             db.session.add(homework)
@@ -122,15 +124,102 @@ class HomeworkAPI(Resource):
 
     # 获取某作业
     def get(self):
-        pass
+        # 新建解析器对象，用来获取request中的参数
+        parse = reqparse.RequestParser()
+        # 检查request中的hid，如果为int，则加入到parse对象中，如果不为int，返回‘错误的hid’
+        parse.add_argument('hid', type=int, help='错误的hid', default='1')
+        # 将parse对象中的参数读取到args中
+        args = parse.parse_args()
+        # 获取args中的hid
+        hid = args.get('hid')  # 现在算是成功把request中的cid存入到hid变量里了
+
+        try:
+            # 从数据库中读取指定course对抗
+            homework = HomeworkTable.query.get(hid)
+        except:
+            # 如果获取失败，则返回错误
+            return jsonify(code=11, message='node not exist, query fail')
+
+        if homework == None:
+            return jsonify(code=11, message='node not exist, query fail')
+        # 返回得到的homework对象，这里的homework是model对象，不可序列化，所以不能直接放入返回的json里面
+        # 需要把homework中的各个字段对应放到一个dict里面，这个功能上面封装成了serialize_course函数
+        return jsonify(code=0, message='OK', data=self.serialize_homework(homework))
     # 修改某作业
 
     def put(self):
-        pass
+        # 新建解析器对象，用来获取request中的参数
+        parse = reqparse.RequestParser()
+        # 检查request中的hid，如果为int，则加入到parse对象中，如果不为int，返回‘错误的hid’
+        parse.add_argument('hid', type=int, help='错误的hid', default='1')
+        parse.add_argument(
+            "homeworkname", type=str, required=True, help='homeworkname cannot be blank!')
+        parse.add_argument(
+            "desc", type=str, required=True, help='homeworkdesc cannot be blank!')
+        # 将parse对象中的参数读取到args中
+        args = parse.parse_args()
+        # 获取args中的hid
+        hid = args.get('hid')  # 现在算是成功把request中的hid存入到hid变量里了
+
+        try:
+            # 从数据库中读取指定course记录
+            homework = HomeworkTable.query.get(hid)
+        except:
+            # 如果获取失败，则返回错误
+            return jsonify(code=26, message='modify fail')
+
+        # 当前数据库节点不存在
+        if homework == None:
+            return jsonify(code=26, message='modify fail')
+        # 当前数据库节点存在，修改
+        else:
+            try:
+                homework.homeworkname = args.get("homeworkname")
+                homework.homework_desc = args.get("desc")
+                homework.htype = 1
+                print(homework.homeworkname)
+            except:
+                # 如果修改失败，则返回错误
+                return jsonify(code=27, message='modify fail')
+
+            try:
+                db.session.commit()
+            except:
+                return jsonify(code=26, message='modify fail')
+
+        return jsonify(code=0, message='OK')
     # 删除某作业
 
     def delete(self):
-        pass
+        # 新建解析器对象，用来获取request中的参数
+        parse = reqparse.RequestParser()
+        # 检查request中的hid，如果为int，则加入到parse对象中，如果不为int，返回‘错误的hid’
+        parse.add_argument('hid', type=int, help='错误的hid', default='1')
+        # 将parse对象中的参数读取到args中
+        args = parse.parse_args()
+        # 获取args中的cid
+        hid = args.get('hid')  # 现在算是成功把request中的hid存入到hid变量里了
+
+        try:
+            # 从数据库中读取指定course记录
+            homework = HomeworkTable.query.get(hid)
+        except:
+            # 如果获取失败，则返回错误
+            return jsonify(code=25, message='delete fail')
+
+        # 当前数据库节点不存在
+        if homework == None:
+            return jsonify(code=25, message='delete fail')
+        # 当前数据库节点存在
+        else:
+            try:
+                db.session.delete(homework)
+                db.session.commit()
+            except:
+                return jsonify(code=25, message='delete fail')
+
+        return jsonify(code=0, message='OK')
+
 
 # /api/homework/datasets?hid=xxx&type=xxx
 
