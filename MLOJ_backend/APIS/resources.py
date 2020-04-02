@@ -12,8 +12,13 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, curren
 from models import UserTable, HomeworkTable, UserHomeworkTable
 from extensions import db, login_manager
 from settings import config
+from werkzeug.datastructures import FileStorage
+from models import CoursewareTable
+from flask import make_response
+from flask import send_file
 # 获取配置文件中定义的资源目录
 RESOURCES_FOLDER = config['RESOURCES_FOLDER']
+COURSEWARES_FOLDER = config['COURSEWARES_FOLDER']
 
 '''
 资源操作相关API
@@ -25,7 +30,7 @@ RESOURCES_FOLDER = config['RESOURCES_FOLDER']
 class CoursewareAPI(Resource):
     courseware_fields = {
         'cwid': fields.Integer,
-        'course_name': fields.String
+        'courseware_name': fields.String
     }
 
     @marshal_with(courseware_fields)
@@ -34,14 +39,111 @@ class CoursewareAPI(Resource):
 
     # 下载课件
     def get(self):
-        pass
-    # 上传课件
+        parse = reqparse.RequestParser()
+        parse.add_argument('cwid',type=int,help='错误的cwid',default='0')
+        args = parse.parse_args()
+        # 获取当前文件夹id
+        file_id = args.get('cwid')
+        try:
+            file_node = CoursewareTable.query.get(file_id)
+        except:
+            response = make_response(jsonify(code=11,message='node not exist, query fail'))
+            return response
+        if file_node is None:
+            response = make_response(jsonify(code=11,message='node not exist, query fail'))
+            return response
+        filename = file_node.courseware_name
+        target_file = os.path.join(os.path.expanduser(COURSEWARES_FOLDER), filename)
+        if os.path.exists(target_file):
 
-    def post(self):
-        pass
+            # print(filename)
+            # print(target_file)
+            return send_file(target_file,as_attachment=True,attachment_filename=filename,cache_timeout=3600)
+            # return send_from_directory(UPLOAD_FOLDER,actual_filename,as_attachment=True)
+            # response =  Response(stream_with_context(self.generate(target_file)),content_type='application/octet-stream')
+            # response.headers["Content-disposition"] = "attachment; filename={}".format(filename.encode().decode('latin-1'))
+            # return response
+        else:
+            response = make_response(jsonify(code='22',message='file not exist'))
+            return response
 
     def delete(self):
-        pass
+        parse = reqparse.RequestParser()
+        parse.add_argument('cwid',type=int,help='错误的cwid',default='0')
+        args = parse.parse_args()
+        # 获取当前文件夹id
+        file_id = args.get('cwid')
+
+        try:
+            file_node = CoursewareTable.query.get(file_id)
+        except:
+            response = make_response(jsonify(code=11,message='node not exist, query fail'))
+            return response
+        try:
+            filename = file_node.courseware_name
+            target_file = os.path.join(os.path.expanduser(COURSEWARES_FOLDER), filename)
+            # 本地删除
+            if os.path.exists(target_file):
+                os.remove(target_file)
+            # 修改数据库中的文件名
+            db.session.delete(file_node)
+            db.session.commit()
+            response = make_response(jsonify(code = 0,message='OK'))
+            return response
+        except:
+            response = make_response(jsonify(code=20,message='file error'))
+            return response
+
+class CoursewaresAPI(Resource):
+    courseware_fields = {
+        'cwid': fields.Integer,
+        'courseware_name': fields.String
+    }
+
+    @marshal_with(courseware_fields)
+    def serialize_courseware(self, courseware):
+        return courseware
+
+    # 上传课件
+    def post(self):
+        parse = reqparse.RequestParser()
+        parse.add_argument('file', type=FileStorage, location='files')
+        args = parse.parse_args()
+
+        f = args['file']
+
+        if f:
+            filename = f.filename
+            if '\"' in filename:
+                filename = filename[:-1]
+            target_file = os.path.join(os.path.expanduser(COURSEWARES_FOLDER), filename)
+            if os.path.exists(target_file):
+                response = make_response(jsonify(code=21,message='file already exist, save fail'))
+                return response
+            try:
+                print(target_file)
+                # 保存文件
+                f.save(target_file)
+                print('saved')
+                print(filename)
+                filenode = CoursewareTable(courseware_name=filename)
+                db.session.add(filenode)
+                db.session.commit()
+                response = make_response(jsonify(code=0,message='OK',data = {'courseware':self.serialize_courseware(filenode)}))
+                return response
+            except:
+                response = make_response(jsonify(code=12,message='node already exist , add fail'))
+                return response
+    def get(self):
+        try:
+            # file_nodes = FileNode.query.filter_by(user_id=cur_uid)
+            file_nodes = CoursewareTable.query.all()
+            response = make_response(jsonify(code = 0,data={'coursewares':[ self.serialize_courseware(file) for file in file_nodes]}))
+            return response
+        except :
+            response = make_response(jsonify(code=10,message='database error'))
+            return response
+
 
 # /app_template_filter()
 

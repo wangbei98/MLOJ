@@ -64,7 +64,8 @@ MLOJ_backend
 | 登录       | /api/login                                | POST(uid=xxx,password=xx)登录                                | P0       | √                  |
 | 登出       | /api/logout                               | GET                                                          | P0       | √                  |
 | 当前用户   | /api/user                                 | 学生：GET(获取当前用户的信息)                                | P3       |                    |
-| 课件       | /api/courseware?cwid=xxx                  | 学生&老师：GET下载cwid=xxx的课件<br/>老师：POST(file=xxx) 上传 <br>老师：DELETE删除课件 | P1       |                    |
+| 课件       | /api/courseware?cwid=xxx                  | 学生&老师：GET下载cwid=xxx的课件<br/>老师：DELETE删除课件    | P1       |                    |
+| 所有课件   | /api/coursewares?                         | 学生&老师：GET获得所有课件信息<br>老师：POST(file=xxx) 上传 <br> | P1       |                    |
 | 单个作业题 | /api/homework?hid=xxx                     | 学生&老师：GET 获取<br/>老师：PUT (homeworkname=xxx,homeworkdesc=xxx,type=1)修改<br/>老师：DELETE 删除 | P1       | 3/3                |
 | 所有作业题 | /api/homeworks                            | 学生&老师：GET 获取全部作业题的信息<br/>老师：POST(homeworkname=xxx,homeworkdesc=xxx,type=x)为homework为xxx的课程新建作业题，作业题类型为x | P1       | 1/2                |
 | 数据集     | /api/homework/datasets?hid=xxx&type=xxx   | 学生&老师：GET 获取xxx作业题对应的数据集<br/>老师：POST(file=xx)为xxx上传数据集<br/>老师：DELETE删除数据集 | P2       |                    |

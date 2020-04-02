@@ -39,7 +39,7 @@ class UserTable(UserMixin, db.Model):
 class CoursewareTable(db.Model):
     __tablename__ = 'courseware'
     cwid = db.Column(db.Integer, primary_key=True)
-    course_name = db.Column(db.String(100))
+    courseware_name = db.Column(db.String(100))
 
     def __repr__(self):
         return "<Courseware {}>".format(self.cwid)

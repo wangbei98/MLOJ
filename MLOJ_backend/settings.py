@@ -6,5 +6,6 @@ import os
 basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 config={
-	'RESOURCES_FOLDER':os.path.join(basedir,'backend/resources')
+	'RESOURCES_FOLDER':os.path.join(basedir,'MLOJ_backend/resources'),
+	'COURSEWARES_FOLDER':os.path.join(basedir,'MLOJ_backend/coursewares')
 }

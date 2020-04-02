@@ -13,6 +13,7 @@ from models import UserTable, HomeworkTable, FileTable, UserHomeworkTable
 from extensions import db, login_manager
 from APIS.auth import Login, Register, Logout,GetCurUserAPI
 from APIS.resources import HomeworksAPI,HomeworkAPI
+from APIS.resources import CoursewareAPI,CoursewaresAPI
 # from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 # from itsdangerous import SignatureExpired, BadSignature
 
@@ -75,3 +76,8 @@ api.add_resource(GetCurUserAPI,'/api/user/getcur',endpoint = 'getcur')
 
 api.add_resource(HomeworksAPI,'/api/homeworks',endpoint='homeworks')
 api.add_resource(HomeworkAPI,'/api/homework',endpoint='homework')
+
+api.add_resource(CoursewareAPI,'/api/courseware',endpoint='courseware')
+api.add_resource(CoursewaresAPI,'/api/coursewares',endpoint='coursewares')
+
+
