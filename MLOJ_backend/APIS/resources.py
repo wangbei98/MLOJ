@@ -70,7 +70,19 @@ class HomeworksAPI(Resource):
     # 获取所有作业信息
 
     def get(self):
-        pass
+        # 获取
+        try:
+            # 从数据获取全部数据存到list
+            homework_li = HomeworkTable.query.all()
+        except:
+            # 获取失败，返回错误
+            return jsonify(code=11, message='query fail')
+
+        if homework_li is None:
+            return jsonify(code=11, message='query fail')
+        # 返回得到的homework对象，这里的homework是model对象，不可序列化，所以不能直接放入返回的json里面
+        # 需要把homework中的各个字段对应放到一个dict里面，这个功能上面封装成了serialize_course函数
+        return jsonify(code=0, message='OK', data={'homeworks':  self.serialize_homework(homework_li)})
     # 新建课程
 
     def post(self):
@@ -144,7 +156,7 @@ class HomeworkAPI(Resource):
             return jsonify(code=11, message='node not exist, query fail')
         # 返回得到的homework对象，这里的homework是model对象，不可序列化，所以不能直接放入返回的json里面
         # 需要把homework中的各个字段对应放到一个dict里面，这个功能上面封装成了serialize_course函数
-        return jsonify(code=0, message='OK', data=self.serialize_homework(homework))
+        return jsonify(code=0, message='OK', data={'homework':  self.serialize_homework(homework)})
     # 修改某作业
 
     def put(self):
