@@ -1,6 +1,7 @@
 
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
+from flask import jsonify
 
 # 新建数据库对象
 db = SQLAlchemy()

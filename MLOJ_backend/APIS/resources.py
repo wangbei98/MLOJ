@@ -296,7 +296,7 @@ class HomeworkAPI(Resource):
             except:
                 return jsonify(code=26, message='modify fail')
 
-        return jsonify(code=0, message='OK')
+        return jsonify(code=0, message='OK', data={'homework':  self.serialize_homework(homework)})
     # 删除某作业
     def deleteFiles(self,hid):
         try:
@@ -487,7 +487,7 @@ class DatasetsAPI(Resource):
             response = make_response(jsonify(code=10,message='database error'))
             return response
 
-# /api/user/course/homework?uid=xxx&hid=xxx
+# /api/homework/submit?uid=xxx&hid=xxx
 # 学生提交的作业
 class StudentHomeworkAPI(Resource):
     user_homework_fields = {
@@ -500,20 +500,49 @@ class StudentHomeworkAPI(Resource):
     }
 
     @marshal_with(user_homework_fields)
-    def serialize_file(self, user_homework):
+    def serialize_user_homework(self, user_homework):
         return user_homework
-    # 获取某学生的某作业
-
+    # 下载某学生的某作业
+    @admin_required
     def get(self):
         pass
     # 某学生上传某作业
-
+    @login_required
     def post(self):
-        pass
+        parse = reqparse.RequestParser()
+        parse.add_argument('hid',type=int)
+        parse.add_argument('file',type=FileStorage,location='files')
+        args = parse.parse_args()
+
+        hid = args.get('hid')
+        uid = current_user.uid
+        f = args['file']
+
+        if f:
+            filename = f.filename
+            if '\"' in filename:
+                filename = filename[:-1]
+            actual_filename = generate_submit_name(hid,uid,filename)
+            target_file = os.path.join(os.path.expanduser(RESOURCES_FOLDER), actual_filename)
+            if os.path.exists(target_file):
+                response = make_response(jsonify(code=21,message='file already exist, save fail'))
+                return response
+            try:
+                # 保存文件
+                print('in try')
+                f.save(target_file)
+                print('after save')
+                userhomework_node = UserHomeworkTable(hid = hid,uid = uid,submit_file_name = filename,submit_time = int(time.time()))
+                print('after create node')
+                db.session.add(userhomework_node)
+                db.session.commit()
+                response = make_response(jsonify(code=0,message='OK',data = {'file':self.serialize_user_homework(userhomework_node)}))
+                return response
+            except:
+                response = make_response(jsonify(code=12,message='node already exist , add fail'))
+                return response
 
 # /api/homework/score?uid=xxx&hid=xxx
-
-
 class ScoreAPI(Resource):
     user_homework_fields = {
         'hid': fields.Integer,
@@ -525,23 +554,47 @@ class ScoreAPI(Resource):
     }
 
     @marshal_with(user_homework_fields)
-    def serialize_file(self, user_homework):
+    def serialize_user_homework(self, user_homework):
         return user_homework
     # get某学生的某作业的分数
-
+    @login_required
     def get(self):
         pass
     # 打分
-
+    @admin_required
     def post(self):
         pass
 
 # 获取某作业下的所有学生完成情况
 # /api/homework/students?hid=xxx
 class StudentsAPI(Resource):
-    def get(self):
-        pass
+    user_homework_fields = {
+        'hid': fields.Integer,
+        'uid': fields.Integer,
+        'score': fields.Integer,
+        'is_finished': fields.Integer,
+        'submit_file_name': fields.String,
+        'submit_time': fields.Integer
+    }
 
+    @marshal_with(user_homework_fields)
+    def serialize_user_homework(self, user_homework):
+        return user_homework
+
+    @admin_required
+    def get(self):
+        parse = reqparse.RequestParser()
+        parse.add_argument('hid',type=int)
+        args = parse.parse_args()
+
+        hid = args.get('hid')
+        try:
+            user_homeworks = UserHomeworkTable.query.filter_by(hid = hid).all()
+            response = make_response(jsonify(code=0,message='OK',data={ 'users':[self.serialize_user_homework(user_homework) for user_homework in user_homeworks] }))
+            return response
+        except:
+            response = make_response(jsonify(code=10,message='database error'))
+            return response
 
 # util 辅助函数
 
@@ -557,6 +610,6 @@ def generate_dataset_name(hid,ftype,filename):
 import hashlib
 
 
-def generate_submit_name(hid, uid):
+def generate_submit_name(hid, uid,filename):
     return hashlib.md5(
-        (str(hid) + '_' + str(uid)).encode('utf-8')).hexdigest()
+        (str(hid) + '_' + str(uid) + '_' + filename).encode('utf-8')).hexdigest()

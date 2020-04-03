@@ -1,7 +1,7 @@
 from flask_login import current_user
 from flask import make_response,jsonify
 from functools import wraps
-
+from flask import current_app
 def admin_required(func):
 	@wraps(func)
 	def decorated_view(*args, **kwargs):
