@@ -61,7 +61,7 @@ class FileTable(db.Model):
     __tablename__ = 'file'
     fid = db.Column(db.Integer, primary_key=True)
     hid = db.Column(db.Integer, db.ForeignKey('homework.hid'))
-    ftype = db.Column(db.String(20))
+    ftype = db.Column(db.Integer)
     filename = db.Column(db.String(100))
 
 

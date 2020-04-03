@@ -16,7 +16,13 @@ def load_user(uid):
 
 
 
-# 这个应该是定义：用户未登录时应该跳转的页面
-login_manager.login_view = 'login'
-# login_manager.login_message = 'Your custom message'
-login_manager.login_message_category = 'warning'
+# # 这个应该是定义：用户未登录时应该跳转的页面
+# login_manager.login_view = 'login'
+# # login_manager.login_message = 'Your custom message'
+# login_manager.login_message_category = 'warning'
+
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    # do stuff
+    return jsonify(code = 36,message = 'user unauthorized,please login')

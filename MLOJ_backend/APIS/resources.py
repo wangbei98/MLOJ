@@ -13,9 +13,10 @@ from models import UserTable, HomeworkTable, UserHomeworkTable
 from extensions import db, login_manager
 from settings import config
 from werkzeug.datastructures import FileStorage
-from models import CoursewareTable
+from models import CoursewareTable,FileTable
 from flask import make_response
 from flask import send_file
+from utils import admin_required
 # 获取配置文件中定义的资源目录
 RESOURCES_FOLDER = config['RESOURCES_FOLDER']
 COURSEWARES_FOLDER = config['COURSEWARES_FOLDER']
@@ -25,8 +26,6 @@ COURSEWARES_FOLDER = config['COURSEWARES_FOLDER']
 '''
 
 # /api/courseware?cwid=xxx
-
-
 class CoursewareAPI(Resource):
     courseware_fields = {
         'cwid': fields.Integer,
@@ -66,7 +65,7 @@ class CoursewareAPI(Resource):
         else:
             response = make_response(jsonify(code='22',message='file not exist'))
             return response
-
+    @admin_required
     def delete(self):
         parse = reqparse.RequestParser()
         parse.add_argument('cwid',type=int,help='错误的cwid',default='0')
@@ -77,6 +76,9 @@ class CoursewareAPI(Resource):
         try:
             file_node = CoursewareTable.query.get(file_id)
         except:
+            response = make_response(jsonify(code=11,message='node not exist, query fail'))
+            return response
+        if file_node is None:
             response = make_response(jsonify(code=11,message='node not exist, query fail'))
             return response
         try:
@@ -105,6 +107,7 @@ class CoursewaresAPI(Resource):
         return courseware
 
     # 上传课件
+    @admin_required
     def post(self):
         parse = reqparse.RequestParser()
         parse.add_argument('file', type=FileStorage, location='files')
@@ -144,12 +147,7 @@ class CoursewaresAPI(Resource):
             response = make_response(jsonify(code=10,message='database error'))
             return response
 
-
-# /app_template_filter()
-
 # /api/homeworks
-
-
 class HomeworksAPI(Resource):
     homework_fields = {
         'hid': fields.Integer,
@@ -170,7 +168,6 @@ class HomeworksAPI(Resource):
     def serialize_homework(self, homework):
         return homework
     # 获取所有作业信息
-
     def get(self):
         # 获取
         try:
@@ -186,7 +183,7 @@ class HomeworksAPI(Resource):
         # 需要把homework中的各个字段对应放到一个dict里面，这个功能上面封装成了serialize_course函数
         return jsonify(code=0, message='OK', data={'homeworks':  self.serialize_homework(homework_li)})
     # 新建课程
-
+    @admin_required
     def post(self):
         # 新建解释器对象，用来获取request中的对象
         parse = reqparse.RequestParser()
@@ -214,8 +211,6 @@ class HomeworksAPI(Resource):
         return jsonify(code=0, message="OK", data={'homework':  self.serialize_homework(homework)})
 
 # /api/homework?hid=xxx
-
-
 class HomeworkAPI(Resource):
     homework_fields = {
         'hid': fields.Integer,
@@ -260,7 +255,7 @@ class HomeworkAPI(Resource):
         # 需要把homework中的各个字段对应放到一个dict里面，这个功能上面封装成了serialize_course函数
         return jsonify(code=0, message='OK', data={'homework':  self.serialize_homework(homework)})
     # 修改某作业
-
+    @admin_required
     def put(self):
         # 新建解析器对象，用来获取request中的参数
         parse = reqparse.RequestParser()
@@ -303,7 +298,18 @@ class HomeworkAPI(Resource):
 
         return jsonify(code=0, message='OK')
     # 删除某作业
-
+    def deleteFiles(self,hid):
+        try:
+            files = FileTable.query.filter_by(hid=hid).all();
+        except:
+            response = make_response(jsonify(code = 10,message='database error'))
+            return response
+        if files == None:
+            return
+        for file in files:
+            db.session.delete(file)
+        db.session.commit()
+    @admin_required
     def delete(self):
         # 新建解析器对象，用来获取request中的参数
         parse = reqparse.RequestParser()
@@ -327,6 +333,7 @@ class HomeworkAPI(Resource):
         # 当前数据库节点存在
         else:
             try:
+                self.deleteFiles(homework.hid)
                 db.session.delete(homework)
                 db.session.commit()
             except:
@@ -334,15 +341,88 @@ class HomeworkAPI(Resource):
 
         return jsonify(code=0, message='OK')
 
-
-# /api/homework/datasets?hid=xxx&type=xxx
-
-
+# /api/homework/dataset?fid=xxx
 class DatasetAPI(Resource):
     file_fields = {
         'fid': fields.Integer,
         'hid': fields.Integer,
-        'ftype': fields.String,
+        'ftype': fields.Integer,
+        'filename': fields.String
+    }
+
+    @marshal_with(file_fields)
+    def serialize_file(self, file):
+        return file
+    # 下载数据集
+    def get(self):
+        parse = reqparse.RequestParser()
+        parse.add_argument('fid',type = int)
+        args = parse.parse_args()
+
+        fid = args.get('fid')
+        try:
+            file_node = FileTable.query.get(fid)
+        except:
+            response = make_response(jsonify(code=11,message='node not exist, query fail'))
+            return response
+        if file_node is None:
+            response = make_response(jsonify(code=11,message='node not exist, query fail'))
+            return response
+        hid = file_node.hid
+        ftype = file_node.ftype
+        filename = file_node.filename
+        actual_filename = generate_dataset_name(hid,ftype,filename)
+        target_file = os.path.join(os.path.expanduser(RESOURCES_FOLDER), actual_filename)
+        if os.path.exists(target_file):
+            return send_file(target_file,as_attachment=True,attachment_filename=filename,cache_timeout=3600)
+        else:
+            response = make_response(jsonify(code='22',message='file not exist'))
+            return response
+    # 删除数据集
+    @admin_required
+    def delete(self):
+        parse = reqparse.RequestParser()
+        parse.add_argument('fie',type=int,help='错误的fid',default='0')
+        args = parse.parse_args()
+        # 获取当前文件夹id
+        fid = args.get('fid')
+
+        if current_user.is_admin == 1:
+            try:
+                file_node = FileTable.query.get(fid)
+            except:
+                response = make_response(jsonify(code=11,message='node not exist, query fail'))
+                return response
+            if file_node is None:
+                response = make_response(jsonify(code=11,message='node not exist, query fail'))
+                return response
+            try:
+                hid = file_node.hid
+                ftype = file_node.ftype
+                filename = file_node.filename
+                actual_filename = generate_dataset_name(hid,ftype,filename)
+                target_file = os.path.join(os.path.expanduser(COURSEWARES_FOLDER), actual_filename)
+                # 本地删除
+                if os.path.exists(target_file):
+                    os.remove(target_file)
+                # 修改数据库中的文件名
+                db.session.delete(file_node)
+                db.session.commit()
+                response = make_response(jsonify(code = 0,message='OK'))
+                return response
+            except:
+                response = make_response(jsonify(code=20,message='file error'))
+                return response
+        else:
+            response = make_response(jsonify(code=36,message='permission denied'))
+            return response
+
+# /api/homework/datasets
+class DatasetsAPI(Resource):
+    file_fields = {
+        'fid': fields.Integer,
+        'hid': fields.Integer,
+        'ftype': fields.Integer,
         'filename': fields.String
     }
 
@@ -350,20 +430,65 @@ class DatasetAPI(Resource):
     def serialize_file(self, file):
         return file
 
-    def get(self):
-        # TODO ：验证用户身份，不允许学生下载 standard 文件
-        pass
-
+    # 上传数据集
+    @admin_required
     def post(self):
-        pass
+        parse = reqparse.RequestParser()
+        parse.add_argument('hid',type = int)
+        parse.add_argument('ftype',type=str)
+        parse.add_argument('file', type=FileStorage, location='files')
+        args = parse.parse_args()
 
-    def delete(self):
-        pass
+        hid = args.get('hid')
+        ftype = args.get('ftype')
+        f = args['file']
+
+        if f:
+            filename = f.filename
+            if '\"' in filename:
+                filename = filename[:-1]
+            actual_filename = generate_dataset_name(hid,ftype,filename)
+            target_file = os.path.join(os.path.expanduser(RESOURCES_FOLDER), actual_filename)
+            if os.path.exists(target_file):
+                response = make_response(jsonify(code=21,message='file already exist, save fail'))
+                return response
+            try:
+                # 保存文件
+                f.save(target_file)
+                filenode = FileTable(hid = hid,ftype = ftype,filename = filename)
+                db.session.add(filenode)
+                db.session.commit()
+                response = make_response(jsonify(code=0,message='OK',data = {'file':self.serialize_file(filenode)}))
+                return response
+            except:
+                response = make_response(jsonify(code=12,message='node already exist , add fail'))
+                return response
+
+    # 获取hid对应数据集
+    def get(self):
+        parse = reqparse.RequestParser()
+        parse.add_argument('hid',type = int)
+        args = parse.parse_args()
+
+        hid = args.get('hid')
+
+        try:
+            print(current_user.is_admin)
+            if current_user.is_admin == 1:
+                print('in if')
+                file_nodes = FileTable.query.filter_by(hid = hid).all()
+            else:
+                print('in else')
+                file_nodes = FileTable.query.filter(FileTable.ftype.in_([0,1])).all()
+                print('after query')
+            response = make_response(jsonify(code = 0,data={'files':[ self.serialize_file(file) for file in file_nodes]}))
+            return response
+        except :
+            response = make_response(jsonify(code=10,message='database error'))
+            return response
 
 # /api/user/course/homework?uid=xxx&hid=xxx
 # 学生提交的作业
-
-
 class StudentHomeworkAPI(Resource):
     user_homework_fields = {
         'hid': fields.Integer,
@@ -424,14 +549,14 @@ class StudentsAPI(Resource):
 import hashlib
 
 
-def generate_file_name(fid, hid):
+def generate_dataset_name(hid,ftype,filename):
     return hashlib.md5(
-        (str(fid) + '_' + str(hid)).encode('utf-8')).hexdigest()
+        (str(hid) + '_' + str(ftype) + '_' + filename).encode('utf-8')).hexdigest()
 
 # 为submit生成文件名
 import hashlib
 
 
-def generate_file_name(hid, uid):
+def generate_submit_name(hid, uid):
     return hashlib.md5(
         (str(hid) + '_' + str(uid)).encode('utf-8')).hexdigest()
