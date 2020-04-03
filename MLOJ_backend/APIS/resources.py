@@ -411,6 +411,12 @@ class ScoreAPI(Resource):
     def post(self):
         pass
 
+# 获取某作业下的所有学生完成情况
+# /api/homework/students?hid=xxx
+class StudentsAPI(Resource):
+    def get(self):
+        pass
+
 
 # util 辅助函数
 
