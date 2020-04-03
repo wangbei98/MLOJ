@@ -502,7 +502,7 @@ class StudentHomeworkAPI(Resource):
     @marshal_with(user_homework_fields)
     def serialize_user_homework(self, user_homework):
         return user_homework
-    # 下载某学生的某作业
+    # 获取某学生的某作业
     @admin_required
     def get(self):
         pass
