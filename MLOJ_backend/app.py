@@ -15,7 +15,6 @@ from APIS.auth import Login, Register, Logout,GetCurUserAPI,GetAllUsersAPI
 from APIS.resources import HomeworksAPI,HomeworkAPI
 from APIS.resources import CoursewareAPI,CoursewaresAPI
 from APIS.resources import DatasetAPI,DatasetsAPI
-from APIS.resources import StudentHomeworkAPI
 from APIS.resources import StudentsAPI
 # from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 # from itsdangerous import SignatureExpired, BadSignature
@@ -58,7 +57,7 @@ def initdb(drop):
     db.create_all()
     # 在数据库中存储一个默认根目录 root  id = 0
     admin = UserTable(
-        uid=123456, password_hash=generate_password_hash('123456'), is_admin=1)
+        uid=123456, password_hash=generate_password_hash('123456'),username='陆坤', is_admin=1)
     db.session.add(admin)
     db.session.commit()
     click.echo('Initialized database.')
@@ -87,7 +86,6 @@ api.add_resource(CoursewaresAPI,'/api/coursewares',endpoint='coursewares')
 api.add_resource(DatasetAPI,'/api/dataset',endpoint='dataset')
 api.add_resource(DatasetsAPI,'/api/datasets',endpoint='datasets')
 
-api.add_resource(StudentHomeworkAPI,'/api/homework/submit',endpoint='complete')
 
 api.add_resource(StudentsAPI,'/api/homework/students',endpoint='students')
 

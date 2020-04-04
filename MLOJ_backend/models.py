@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from extensions import db
+from flask_restful import Api, Resource, fields, marshal_with, marshal_with_field, reqparse
 
 
 # Models
@@ -36,6 +37,15 @@ class UserTable(UserMixin, db.Model):
         return "<User {}>".format(self.uid)
 
 
+    user_fields = {
+        'uid' : fields.Integer,
+        'username' : fields.String,
+        'is_admin' : fields.Integer
+    }
+    @marshal_with(user_fields)
+    def to_json(self):
+        return self
+
 class CoursewareTable(db.Model):
     __tablename__ = 'courseware'
     cwid = db.Column(db.Integer, primary_key=True)
@@ -44,7 +54,14 @@ class CoursewareTable(db.Model):
     def __repr__(self):
         return "<Courseware {}>".format(self.cwid)
 
+    courseware_fields = {
+        'cwid': fields.Integer,
+        'courseware_name': fields.String
+    }
 
+    @marshal_with(courseware_fields)
+    def to_json(self):
+        return self
 class HomeworkTable(db.Model):
     __tablename__ = 'homework'
     hid = db.Column(db.Integer, primary_key=True)
@@ -52,10 +69,31 @@ class HomeworkTable(db.Model):
     htype = db.Column(db.Integer)  # 0 : jupyter , 1: python
     homework_desc = db.Column(db.String(500))
     homework_begin_time = db.Column(db.Integer)
-
+    homework_end_time = db.Column(db.Integer)
+    publish_rank = db.Column(db.Integer,default = 0)
     # 建立和 file 的一对多关系
     files = db.relationship('FileTable')
 
+    homework_fields = {
+        'hid': fields.Integer,
+        'htype': fields.Integer,
+        'homeworkname': fields.String,
+        'homework_desc': fields.String,
+        'homework_begin_time': fields.Integer,
+        'homework_end_time':fields.Integer,
+        'publish_rank':fields.Integer,
+        'files': fields.List(fields.Nested({
+            'hid': fields.Integer,
+            'htype': fields.Integer,
+            'homeworkname': fields.String,
+            'homework_desc': fields.String,
+            'homework_begin_time': fields.Integer
+        }))
+    }
+
+    @marshal_with(homework_fields)
+    def to_json(self):
+        return self
 
 class FileTable(db.Model):
     __tablename__ = 'file'
@@ -64,6 +102,16 @@ class FileTable(db.Model):
     ftype = db.Column(db.Integer)
     filename = db.Column(db.String(100))
 
+    file_fields = {
+        'fid': fields.Integer,
+        'hid': fields.Integer,
+        'ftype': fields.Integer,
+        'filename': fields.String
+    }
+
+    @marshal_with(file_fields)
+    def to_json(self):
+        return self
 
 class UserHomeworkTable(db.Model):
     __tablename__ = 'user_homework'
@@ -73,3 +121,15 @@ class UserHomeworkTable(db.Model):
     is_finished = db.Column(db.Integer, default=0)
     submit_file_name = db.Column(db.String(100))
     submit_time = db.Column(db.Integer)
+
+    user_homework_fields = {
+        'hid': fields.Integer,
+        'uid': fields.Integer,
+        'score': fields.Integer,
+        'is_finished': fields.Integer,
+        'submit_file_name': fields.String,
+        'submit_time': fields.Integer
+    }
+    @marshal_with(user_homework_fields)
+    def to_json(self):
+        return self

@@ -16,7 +16,7 @@ from werkzeug.datastructures import FileStorage
 from models import CoursewareTable,FileTable
 from flask import make_response
 from flask import send_file
-from utils import admin_required
+from utils import admin_required,generate_dataset_name,generate_submit_name
 # 获取配置文件中定义的资源目录
 RESOURCES_FOLDER = config['RESOURCES_FOLDER']
 COURSEWARES_FOLDER = config['COURSEWARES_FOLDER']
@@ -27,15 +27,6 @@ COURSEWARES_FOLDER = config['COURSEWARES_FOLDER']
 
 # /api/courseware?cwid=xxx
 class CoursewareAPI(Resource):
-    courseware_fields = {
-        'cwid': fields.Integer,
-        'courseware_name': fields.String
-    }
-
-    @marshal_with(courseware_fields)
-    def serialize_courseware(self, courseware):
-        return courseware
-
     # 下载课件
     def get(self):
         parse = reqparse.RequestParser()
@@ -97,15 +88,6 @@ class CoursewareAPI(Resource):
             return response
 
 class CoursewaresAPI(Resource):
-    courseware_fields = {
-        'cwid': fields.Integer,
-        'courseware_name': fields.String
-    }
-
-    @marshal_with(courseware_fields)
-    def serialize_courseware(self, courseware):
-        return courseware
-
     # 上传课件
     @admin_required
     def post(self):
@@ -132,7 +114,7 @@ class CoursewaresAPI(Resource):
                 filenode = CoursewareTable(courseware_name=filename)
                 db.session.add(filenode)
                 db.session.commit()
-                response = make_response(jsonify(code=0,message='OK',data = {'courseware':self.serialize_courseware(filenode)}))
+                response = make_response(jsonify(code=0,message='OK',data = {'courseware':filenode.to_json()}))
                 return response
             except:
                 response = make_response(jsonify(code=12,message='node already exist , add fail'))
@@ -141,7 +123,7 @@ class CoursewaresAPI(Resource):
         try:
             # file_nodes = FileNode.query.filter_by(user_id=cur_uid)
             file_nodes = CoursewareTable.query.all()
-            response = make_response(jsonify(code = 0,data={'coursewares':[ self.serialize_courseware(file) for file in file_nodes]}))
+            response = make_response(jsonify(code = 0,data={'coursewares':[file.to_json() for file in file_nodes]}))
             return response
         except :
             response = make_response(jsonify(code=10,message='database error'))
@@ -149,24 +131,6 @@ class CoursewaresAPI(Resource):
 
 # /api/homeworks
 class HomeworksAPI(Resource):
-    homework_fields = {
-        'hid': fields.Integer,
-        'htype': fields.Integer,
-        'homeworkname': fields.String,
-        'homework_desc': fields.String,
-        'homework_begin_time': fields.Integer,
-        'files': fields.List(fields.Nested({
-            'hid': fields.Integer,
-            'htype': fields.Integer,
-            'homeworkname': fields.String,
-            'homework_desc': fields.String,
-            'homework_begin_time': fields.Integer
-        }))
-    }
-
-    @marshal_with(homework_fields)
-    def serialize_homework(self, homework):
-        return homework
     # 获取所有作业信息
     def get(self):
         # 获取
@@ -180,8 +144,7 @@ class HomeworksAPI(Resource):
         if homework_li is None:
             return jsonify(code=11, message='query fail')
         # 返回得到的homework对象，这里的homework是model对象，不可序列化，所以不能直接放入返回的json里面
-        # 需要把homework中的各个字段对应放到一个dict里面，这个功能上面封装成了serialize_course函数
-        return jsonify(code=0, message='OK', data={'homeworks':  self.serialize_homework(homework_li)})
+        return jsonify(code=0, message='OK', data={'homeworks':  [ homework.to_json() for homework in homework_li]})
     # 新建课程
     @admin_required
     def post(self):
@@ -190,16 +153,16 @@ class HomeworksAPI(Resource):
         # 检查request中的htype，如果为int，则加入到parse对象中，如果不为int，返回‘错误的htype’
         parse.add_argument('type', type=int, help='错误的htype', default='1')
         # 检查request中的homeworkname，str类型不为空
-        parse.add_argument(
-            "homeworkname", type=str, required=True, help='homeworkname cannot be blank!')
+        parse.add_argument("homeworkname", type=str, required=True, help='homeworkname cannot be blank!')
         # 检查request中的desc，str类型不为空
-        parse.add_argument(
-            "desc", type=str, required=True, help='homework_desc cannot be blank!')
+        parse.add_argument("desc", type=str, required=True, help='homework_desc cannot be blank!')
+        parse.add_argument('publish_rank',type =int,required=True,help = 'public_rank cannot be blank')
+        parse.add_argument('end_time',type = int,required=True,help='end time cannot be blank')
         # 将parse对象中的参数读取到args中
         args = parse.parse_args()
         # new
         homework = HomeworkTable(htype=args.get('type'), homeworkname=args.get(
-            'homeworkname'), homework_desc=args.get('desc'), homework_begin_time=int(time.time()))
+            'homeworkname'), homework_desc=args.get('desc'), homework_begin_time=int(time.time()),homework_end_time=int(time.time())+args.get('end_time')*24*3600 )
 
         try:
             db.session.add(homework)
@@ -208,29 +171,10 @@ class HomeworksAPI(Resource):
             # 如果插入失败，则返回错误
             return jsonify(code=27, message='insert fail')
 
-        return jsonify(code=0, message="OK", data={'homework':  self.serialize_homework(homework)})
+        return jsonify(code=0, message="OK", data={'homework':  homework.to_json()})
 
 # /api/homework?hid=xxx
 class HomeworkAPI(Resource):
-    homework_fields = {
-        'hid': fields.Integer,
-        'htype': fields.Integer,
-        'homeworkname': fields.String,
-        'homework_desc': fields.String,
-        'homework_begin_time': fields.Integer,
-        'files': fields.List(fields.Nested({
-            'hid': fields.Integer,
-            'htype': fields.Integer,
-            'homeworkname': fields.String,
-            'homework_desc': fields.String,
-            'homework_begin_time': fields.Integer
-        }))
-    }
-
-    @marshal_with(homework_fields)
-    def serialize_homework(self, homework):
-        return homework
-
     # 获取某作业
     def get(self):
         # 新建解析器对象，用来获取request中的参数
@@ -243,7 +187,7 @@ class HomeworkAPI(Resource):
         hid = args.get('hid')  # 现在算是成功把request中的cid存入到hid变量里了
 
         try:
-            # 从数据库中读取指定course对抗
+            # 从数据库中读取指定course对象
             homework = HomeworkTable.query.get(hid)
         except:
             # 如果获取失败，则返回错误
@@ -252,8 +196,7 @@ class HomeworkAPI(Resource):
         if homework == None:
             return jsonify(code=11, message='node not exist, query fail')
         # 返回得到的homework对象，这里的homework是model对象，不可序列化，所以不能直接放入返回的json里面
-        # 需要把homework中的各个字段对应放到一个dict里面，这个功能上面封装成了serialize_course函数
-        return jsonify(code=0, message='OK', data={'homework':  self.serialize_homework(homework)})
+        return jsonify(code=0, message='OK', data={'homework':  homework.to_json()})
     # 修改某作业
     @admin_required
     def put(self):
@@ -261,15 +204,18 @@ class HomeworkAPI(Resource):
         parse = reqparse.RequestParser()
         # 检查request中的hid，如果为int，则加入到parse对象中，如果不为int，返回‘错误的hid’
         parse.add_argument('hid', type=int, help='错误的hid', default='1')
-        parse.add_argument(
-            "homeworkname", type=str, required=True, help='homeworkname cannot be blank!')
-        parse.add_argument(
-            "desc", type=str, required=True, help='homeworkdesc cannot be blank!')
+        parse.add_argument("homeworkname", type=str, required=True, help='homeworkname cannot be blank!')
+        parse.add_argument("desc", type=str, required=True, help='homeworkdesc cannot be blank!')
+        parse.add_argument('publish_rank',type =int,required=True,help = 'public_rank cannot be blank')
+        parse.add_argument('end_time',type = int,required=True,help='end time cannot be blank')
         # 将parse对象中的参数读取到args中
         args = parse.parse_args()
         # 获取args中的hid
-        hid = args.get('hid')  # 现在算是成功把request中的hid存入到hid变量里了
-
+        hid = args.get('hid')
+        homeworkname = args.get('homeworkname')
+        desc = args.get('desc')
+        publish_rank = args.get('publish_rank')
+        end_time = args.get('end_time')
         try:
             # 从数据库中读取指定course记录
             homework = HomeworkTable.query.get(hid)
@@ -283,10 +229,11 @@ class HomeworkAPI(Resource):
         # 当前数据库节点存在，修改
         else:
             try:
-                homework.homeworkname = args.get("homeworkname")
-                homework.homework_desc = args.get("desc")
-                homework.htype = 1
-                print(homework.homeworkname)
+                homework_end_time = homework.homework_begin_time + end_time * 24 * 3600
+                homework.homeworkname = homeworkname
+                homework.homework_desc = desc
+                homework.publish_rank = publish_rank
+                homework.homework_end_time = homework_end_time
             except:
                 # 如果修改失败，则返回错误
                 return jsonify(code=27, message='modify fail')
@@ -296,7 +243,7 @@ class HomeworkAPI(Resource):
             except:
                 return jsonify(code=26, message='modify fail')
 
-        return jsonify(code=0, message='OK', data={'homework':  self.serialize_homework(homework)})
+        return jsonify(code=0, message='OK', data={'homework':  homework.to_json()})
     # 删除某作业
     def deleteFiles(self,hid):
         try:
@@ -343,16 +290,6 @@ class HomeworkAPI(Resource):
 
 # /api/homework/dataset?fid=xxx
 class DatasetAPI(Resource):
-    file_fields = {
-        'fid': fields.Integer,
-        'hid': fields.Integer,
-        'ftype': fields.Integer,
-        'filename': fields.String
-    }
-
-    @marshal_with(file_fields)
-    def serialize_file(self, file):
-        return file
     # 下载数据集
     def get(self):
         parse = reqparse.RequestParser()
@@ -384,7 +321,6 @@ class DatasetAPI(Resource):
         parse = reqparse.RequestParser()
         parse.add_argument('fie',type=int,help='错误的fid',default='0')
         args = parse.parse_args()
-        # 获取当前文件夹id
         fid = args.get('fid')
 
         if current_user.is_admin == 1:
@@ -419,17 +355,6 @@ class DatasetAPI(Resource):
 
 # /api/homework/datasets
 class DatasetsAPI(Resource):
-    file_fields = {
-        'fid': fields.Integer,
-        'hid': fields.Integer,
-        'ftype': fields.Integer,
-        'filename': fields.String
-    }
-
-    @marshal_with(file_fields)
-    def serialize_file(self, file):
-        return file
-
     # 上传数据集
     @admin_required
     def post(self):
@@ -458,7 +383,7 @@ class DatasetsAPI(Resource):
                 filenode = FileTable(hid = hid,ftype = ftype,filename = filename)
                 db.session.add(filenode)
                 db.session.commit()
-                response = make_response(jsonify(code=0,message='OK',data = {'file':self.serialize_file(filenode)}))
+                response = make_response(jsonify(code=0,message='OK',data = {'file':filenode.to_json()}))
                 return response
             except:
                 response = make_response(jsonify(code=12,message='node already exist , add fail'))
@@ -481,7 +406,7 @@ class DatasetsAPI(Resource):
                 print('in else')
                 file_nodes = FileTable.query.filter(FileTable.ftype.in_([0,1])).all()
                 print('after query')
-            response = make_response(jsonify(code = 0,data={'files':[ self.serialize_file(file) for file in file_nodes]}))
+            response = make_response(jsonify(code = 0,data={'files':[ file.to_json() for file in file_nodes]}))
             return response
         except :
             response = make_response(jsonify(code=10,message='database error'))
@@ -489,73 +414,15 @@ class DatasetsAPI(Resource):
 
 # /api/homework/submit?uid=xxx&hid=xxx
 # 学生提交的作业
-class StudentHomeworkAPI(Resource):
-    user_homework_fields = {
-        'hid': fields.Integer,
-        'uid': fields.Integer,
-        'score': fields.Integer,
-        'is_finished': fields.Integer,
-        'submit_file_name': fields.String,
-        'submit_time': fields.Integer
-    }
-
-    @marshal_with(user_homework_fields)
-    def serialize_user_homework(self, user_homework):
-        return user_homework
-    # 获取某学生的某作业
-    @admin_required
-    def get(self):
-        pass
+class SubmitHTMLAPI(Resource):
     # 某学生上传某作业
     @login_required
     def post(self):
-        parse = reqparse.RequestParser()
-        parse.add_argument('hid',type=int)
-        parse.add_argument('file',type=FileStorage,location='files')
-        args = parse.parse_args()
-
-        hid = args.get('hid')
-        uid = current_user.uid
-        f = args['file']
-
-        if f:
-            filename = f.filename
-            if '\"' in filename:
-                filename = filename[:-1]
-            actual_filename = generate_submit_name(hid,uid,filename)
-            target_file = os.path.join(os.path.expanduser(RESOURCES_FOLDER), actual_filename)
-            if os.path.exists(target_file):
-                response = make_response(jsonify(code=21,message='file already exist, save fail'))
-                return response
-            try:
-                # 保存文件
-                print('in try')
-                f.save(target_file)
-                print('after save')
-                userhomework_node = UserHomeworkTable(hid = hid,uid = uid,submit_file_name = filename,submit_time = int(time.time()))
-                print('after create node')
-                db.session.add(userhomework_node)
-                db.session.commit()
-                response = make_response(jsonify(code=0,message='OK',data = {'file':self.serialize_user_homework(userhomework_node)}))
-                return response
-            except:
-                response = make_response(jsonify(code=12,message='node already exist , add fail'))
-                return response
+        pass
 
 # /api/homework/score?uid=xxx&hid=xxx
 class ScoreAPI(Resource):
-    user_homework_fields = {
-        'hid': fields.Integer,
-        'uid': fields.Integer,
-        'score': fields.Integer,
-        'is_finished': fields.Integer,
-        'submit_file_name': fields.String,
-        'submit_time': fields.Integer
-    }
 
-    @marshal_with(user_homework_fields)
-    def serialize_user_homework(self, user_homework):
-        return user_homework
     # get某学生的某作业的分数
     @login_required
     def get(self):
@@ -568,19 +435,6 @@ class ScoreAPI(Resource):
 # 获取某作业下的所有学生完成情况
 # /api/homework/students?hid=xxx
 class StudentsAPI(Resource):
-    user_homework_fields = {
-        'hid': fields.Integer,
-        'uid': fields.Integer,
-        'score': fields.Integer,
-        'is_finished': fields.Integer,
-        'submit_file_name': fields.String,
-        'submit_time': fields.Integer
-    }
-
-    @marshal_with(user_homework_fields)
-    def serialize_user_homework(self, user_homework):
-        return user_homework
-
     @admin_required
     def get(self):
         parse = reqparse.RequestParser()
@@ -590,26 +444,8 @@ class StudentsAPI(Resource):
         hid = args.get('hid')
         try:
             user_homeworks = UserHomeworkTable.query.filter_by(hid = hid).all()
-            response = make_response(jsonify(code=0,message='OK',data={ 'users':[self.serialize_user_homework(user_homework) for user_homework in user_homeworks] }))
+            response = make_response(jsonify(code=0,message='OK',data={ 'users':[user_homework.to_json() for user_homework in user_homeworks] }))
             return response
         except:
             response = make_response(jsonify(code=10,message='database error'))
             return response
-
-# util 辅助函数
-
-# 为file生成文件名
-import hashlib
-
-
-def generate_dataset_name(hid,ftype,filename):
-    return hashlib.md5(
-        (str(hid) + '_' + str(ftype) + '_' + filename).encode('utf-8')).hexdigest()
-
-# 为submit生成文件名
-import hashlib
-
-
-def generate_submit_name(hid, uid,filename):
-    return hashlib.md5(
-        (str(hid) + '_' + str(uid) + '_' + filename).encode('utf-8')).hexdigest()
