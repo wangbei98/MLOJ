@@ -28,4 +28,4 @@ def generate_dataset_name(hid,ftype,filename):
 # 为submit生成文件名
 def generate_submit_name(hid, uid,filename):
     return hashlib.md5(
-        (str(hid) + '_' + str(uid) + '_' + filename).encode('utf-8')).hexdigest()
+        (str(hid) + '_' + str(uid)).encode('utf-8')).hexdigest() + '_ ' + filename

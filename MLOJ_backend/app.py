@@ -15,7 +15,8 @@ from APIS.auth import Login, Register, Logout,GetCurUserAPI,GetAllUsersAPI
 from APIS.resources import HomeworksAPI,HomeworkAPI
 from APIS.resources import CoursewareAPI,CoursewaresAPI
 from APIS.resources import DatasetAPI,DatasetsAPI
-from APIS.resources import StudentsAPI
+from APIS.resources import SubmitAPI
+from APIS.resources import StudentsAPI,ScoreAPI
 # from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 # from itsdangerous import SignatureExpired, BadSignature
 
@@ -86,7 +87,10 @@ api.add_resource(CoursewaresAPI,'/api/coursewares',endpoint='coursewares')
 api.add_resource(DatasetAPI,'/api/dataset',endpoint='dataset')
 api.add_resource(DatasetsAPI,'/api/datasets',endpoint='datasets')
 
+api.add_resource(SubmitAPI,'/api/homework/submit',endpoint='submit')
 
+
+api.add_resource(ScoreAPI,'/api/homework/score',endpoint='score')
 api.add_resource(StudentsAPI,'/api/homework/students',endpoint='students')
 
 

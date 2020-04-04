@@ -17,9 +17,11 @@ from models import CoursewareTable,FileTable
 from flask import make_response
 from flask import send_file
 from utils import admin_required,generate_dataset_name,generate_submit_name
+from sqlalchemy import and_
 # 获取配置文件中定义的资源目录
 RESOURCES_FOLDER = config['RESOURCES_FOLDER']
 COURSEWARES_FOLDER = config['COURSEWARES_FOLDER']
+SUBMITS_FOLDER = config['SUBMITS_FOLDER']
 
 '''
 资源操作相关API
@@ -412,40 +414,173 @@ class DatasetsAPI(Resource):
             response = make_response(jsonify(code=10,message='database error'))
             return response
 
-# /api/homework/submit?uid=xxx&hid=xxx
+# /api/homework/submit?hid=xxx
 # 学生提交的作业
-class SubmitHTMLAPI(Resource):
+class SubmitAPI(Resource):
+    @login_required
+    # 学生查看自己提交的作业
+    def get(self):
+        parse = reqparse.RequestParser()
+        parse.add_argument('hid',type=int,required=True,help='hid cannot be blank')
+        args = parse.parse_args()
+        hid = args.get('hid')
+        uid = current_user.uid
+        try:
+            print(hid)
+            print(uid)
+            user_homework = UserHomeworkTable.query.filter(and_(UserHomeworkTable.hid==hid,UserHomeworkTable.uid==uid)).first()
+        except:
+            response = make_response(jsonify(code=10,message='database error'))
+            return response
+        if user_homework is None:
+            print('node is none')
+            response = make_response(jsonify(code=11,message='node not exist, query fail'))
+            return response
+        filename = user_homework.submit_file_name
+        actual_filename = generate_submit_name(hid,uid,filename)
+        target_file = os.path.join(os.path.expanduser(SUBMITS_FOLDER), actual_filename)
+        if os.path.exists(target_file):
+            return send_file(target_file,as_attachment=False,attachment_filename=filename,cache_timeout=3600)
+        else:
+            response = make_response(jsonify(code='22',message='file not exist'))
+            return response
+    # 删除数据集
     # 某学生上传某作业
     @login_required
     def post(self):
-        pass
+        parse = reqparse.RequestParser()
+        parse.add_argument('hid',type=int,required=True,help='hid cannot be blank')
+        parse.add_argument('file',type = FileStorage,location='files')
+        args = parse.parse_args()
+        hid = args.get('hid')
+        file = args.get('file')
+        uid = current_user.uid
+        print(hid)
+        print(uid)
+        try:
+            user_homework = UserHomeworkTable.query.filter(and_(UserHomeworkTable.hid==hid,UserHomeworkTable.uid==uid)).first()
+        except:
+            response = make_response(jsonify(code=10,message='database error'))
+            return response
+        # 已存在，删掉原来的文件
+        if user_homework:
+            print('node exists')
+            old_filename = user_homework.submit_file_name
+            old_actual_filename = generate_submit_name(hid,uid,old_filename)
+            old_target_file = os.path.join(os.path.expanduser(SUBMITS_FOLDER), old_actual_filename)
+            if os.path.exists(old_target_file):
+                print('file exists')
+                os.remove(old_target_file)
+            # 修改文件名
+            filename = file.filename
+            if '\"' in filename:
+                filename = filename[:-1]
+            try:
+                user_homework.submit_file_name = filename
+                db.session.add(user_homework)
+                db.session.commit()
+            except:
+                response = make_response(jsonify(code=10,message='database error'))
+                return response
+            # 存储新文件
+            try:
+                actual_filename = generate_submit_name(hid,uid,filename)
+                target_file = os.path.join(os.path.expanduser(SUBMITS_FOLDER), actual_filename)
+                file.save(target_file)
+                response = make_response(jsonify(code=0,message='OK'))
+                return response
+            except:
+                response = make_response(jsonify(code=10,message='database error'))
+                return response
 
-# /api/homework/score?uid=xxx&hid=xxx
+        # 文件不存在，需要新建
+        else:
+            filename = file.filename
+            if '\"' in filename:
+                filename = filename[:-1]
+            print(filename)
+            try:
+                user_homework = UserHomeworkTable(hid=hid,uid=uid,is_finished=1,submit_file_name=filename,submit_time=int(time.time()))
+                db.session.add(user_homework)
+                db.session.commit()
+            except:
+                response = make_response(jsonify(code=10,message='database error'))
+                return response
+            try:
+                actual_filename = generate_submit_name(hid,uid,filename)
+                target_file = os.path.join(os.path.expanduser(SUBMITS_FOLDER), actual_filename)
+                file.save(target_file)
+                response = make_response(jsonify(code=0,message='OK'))
+                return response
+            except:
+                response = make_response(jsonify(code=10,message='database error'))
+                return response
+# /api/homework/score?hid=xxx
 class ScoreAPI(Resource):
 
-    # get某学生的某作业的分数
+    # 学生 get某学生的某作业的分数
     @login_required
     def get(self):
-        pass
+        parse = reqparse.RequestParser()
+        parse.add_argument('hid',type = int,required=True,help='hid cannot be blank')
+        args = parse.parse_args()
+
+        hid = args.get('hid')
+        uid = current_user.uid
+        try:
+            user_homework = UserHomeworkTable.query.filter(and_(UserHomeworkTable.hid==hid,UserHomeworkTable.uid==uid)).first()
+        except:
+            response = make_response(jsonify(code=10,message='database error'))
+            return response
+        if user_homework is None:
+            response = make_response(jsonify(code=11,message='node not exist, query fail'))
+            return response
+        response = make_response(jsonify(code=0, message = 'OK',data = { 'score' : user_homework.score}))
+        return response
     # 打分
     @admin_required
     def post(self):
-        pass
-
+        parse = reqparse.RequestParser()
+        parse.add_argument('hid',type = int,required=True,help='hid cannot be blank')
+        parse.add_argument('uid',type=int,required=True,help='uid cannot be blank')
+        parse.add_argument('score',type=int,required=True,help='score cannot be blank')
+        args = parse.parse_args()
+        hid = args.get('hid')
+        uid = args.get('uid')
+        score = args.get('score')
+        try:
+            user_homework = UserHomeworkTable.query.filter(and_(UserHomeworkTable.hid==hid,UserHomeworkTable.uid==uid)).first()
+        except:
+            response = make_response(jsonify(code=10,message='database error'))
+            return response
+        if user_homework is None:
+            response = make_response(jsonify(code=11,message='node not exist, query fail'))
+            return response
+        # TODO
+        try:
+            user_homework.score =score
+            db.session.commit()
+            response = make_response(jsonify(code=0,message='OK',data={'user-homework':user_homework.to_json()}))
+            return response
+        except:
+            response = make_response(jsonify(code=10,message='database error'))
+            return response
 # 获取某作业下的所有学生完成情况
 # /api/homework/students?hid=xxx
+
 class StudentsAPI(Resource):
     @admin_required
     def get(self):
         parse = reqparse.RequestParser()
         parse.add_argument('hid',type=int)
         args = parse.parse_args()
-
         hid = args.get('hid')
         try:
-            user_homeworks = UserHomeworkTable.query.filter_by(hid = hid).all()
+            user_homeworks = UserHomeworkTable.query.filter_by(hid=hid).all()
             response = make_response(jsonify(code=0,message='OK',data={ 'users':[user_homework.to_json() for user_homework in user_homeworks] }))
             return response
         except:
             response = make_response(jsonify(code=10,message='database error'))
             return response
+
+

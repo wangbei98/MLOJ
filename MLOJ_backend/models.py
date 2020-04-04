@@ -83,11 +83,10 @@ class HomeworkTable(db.Model):
         'homework_end_time':fields.Integer,
         'publish_rank':fields.Integer,
         'files': fields.List(fields.Nested({
+            'fid': fields.Integer,
             'hid': fields.Integer,
-            'htype': fields.Integer,
-            'homeworkname': fields.String,
-            'homework_desc': fields.String,
-            'homework_begin_time': fields.Integer
+            'ftype': fields.Integer,
+            'filename': fields.String
         }))
     }
 
@@ -117,9 +116,9 @@ class UserHomeworkTable(db.Model):
     __tablename__ = 'user_homework'
     hid = db.Column(db.Integer, primary_key=True)
     uid = db.Column(db.Integer, primary_key=True)
-    score = db.Column(db.Integer)
+    score = db.Column(db.Integer,default = 0)
     is_finished = db.Column(db.Integer, default=0)
-    submit_file_name = db.Column(db.String(100))
+    submit_file_name = db.Column(db.String(200))
     submit_time = db.Column(db.Integer)
 
     user_homework_fields = {
