@@ -321,7 +321,7 @@ class DatasetAPI(Resource):
     @admin_required
     def delete(self):
         parse = reqparse.RequestParser()
-        parse.add_argument('fie',type=int,help='错误的fid',default='0')
+        parse.add_argument('fid',type=int,help='错误的fid',default='0')
         args = parse.parse_args()
         fid = args.get('fid')
 
