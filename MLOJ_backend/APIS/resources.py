@@ -339,7 +339,7 @@ class DatasetAPI(Resource):
                 ftype = file_node.ftype
                 filename = file_node.filename
                 actual_filename = generate_dataset_name(hid,ftype,filename)
-                target_file = os.path.join(os.path.expanduser(COURSEWARES_FOLDER), actual_filename)
+                target_file = os.path.join(os.path.expanduser(RESOURCES_FOLDER), actual_filename)
                 # 本地删除
                 if os.path.exists(target_file):
                     os.remove(target_file)
