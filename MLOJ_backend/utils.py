@@ -29,3 +29,50 @@ def generate_dataset_name(hid,ftype,filename):
 def generate_submit_name(hid, uid,filename):
     return hashlib.md5(
         (str(hid) + '_' + str(uid)).encode('utf-8')).hexdigest() + '_ ' + filename
+
+
+
+
+import pandas as pd
+
+
+def get_micro_precision_score(ans_path,res_path):
+    ans_data = pd.read_csv(ans_path).iloc[:,-1]
+    res_data = pd.read_csv(res_path).iloc[:,-1]
+    from sklearn.metrics import precision_score
+    precision_score =  precision_score(ans_data, res_data, average="micro")
+    return precision_score
+
+def get_macro_precision_score(ans_path,res_path):
+    ans_data = pd.read_csv(ans_path).iloc[:,-1]
+    res_data = pd.read_csv(res_path).iloc[:,-1]
+    from sklearn.metrics import precision_score
+    precision_score =  precision_score(ans_data, res_data, average="macro")
+    return precision_score
+
+def get_f1_score(ans_path,res_path):
+    ans_data = pd.read_csv(ans_path).iloc[:,-1]
+    res_data = pd.read_csv(res_path).iloc[:,-1]
+    from sklearn.metrics import f1_score
+    f1_s = f1_score(ans_data,res_data)
+    return f1_s
+def get_rmse(ans_path,res_path):
+    ans_data = pd.read_csv(ans_path).iloc[:,-1]
+    res_data = pd.read_csv(res_path).iloc[:,-1]
+    import numpy as np
+    rmse = np.sqrt(np.mean(np.square(ans_data-res_data)))
+    return rmse
+def get_r2_score(ans_path,res_path):
+    ans_data = pd.read_csv(ans_path).iloc[:,-1]
+    res_data = pd.read_csv(res_path).iloc[:,-1]
+    from sklearn.metrics import r2_score
+    r2_score = r2_score(ans_data,res_data)
+    return r2_score
+
+
+if __name__ == '__main__':
+    res_path = 'test/res.csv'
+    ans_path = 'test/ans.csv'
+    print(get_micro_precision_score(ans_path,res_path))
+    print(get_macro_precision_score(ans_path,res_path))
+    print(get_r2_score(ans_path,res_path))
