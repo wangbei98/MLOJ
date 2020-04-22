@@ -70,9 +70,33 @@ def get_r2_score(ans_path,res_path):
     return r2_score
 
 
+def get_score(ans_path,res_path,evaluate_standard):
+	if evaluate_standard == 'micro' :
+		score = get_micro_precision_score(ans_path,res_path)
+		return round(score*10,1)
+	elif evaluate_standard == 'macro':
+		score = get_macro_precision_score(ans_path,res_path)
+		return round(score*10,1)
+	elif evaluate_standard == 'f1_score':
+		score = get_f1_score(ans_path,res_path)
+		return round(score*10,1)
+	elif evaluate_standard == 'rmse':
+		score = get_rmse(ans_path,res_path)
+		return round((1-score)*10,1)
+	elif evaluate_standard == 'r2_score':
+		score = get_r2_score(ans_path,res_path)
+		return round(score*10,1)
+
+
 if __name__ == '__main__':
     res_path = 'test/res.csv'
     ans_path = 'test/ans.csv'
-    print(get_micro_precision_score(ans_path,res_path))
-    print(get_macro_precision_score(ans_path,res_path))
-    print(get_r2_score(ans_path,res_path))
+    
+    print(get_score(ans_path,res_path,'micro'))
+    print(get_score(ans_path,res_path,'macro'))
+    # print(get_score(ans_path,res_path,'f1_score'))
+    print(get_score(ans_path,res_path,'rmse'))
+    print(get_score(ans_path,res_path,'r2_score'))
+
+
+
