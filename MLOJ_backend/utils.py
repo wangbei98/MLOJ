@@ -41,51 +41,51 @@ def get_micro_precision_score(ans_path,res_path):
     res_data = pd.read_csv(res_path).iloc[:,-1]
     from sklearn.metrics import precision_score
     precision_score =  precision_score(ans_data, res_data, average="micro")
-    return precision_score
+    return round(precision_score*10,1)
 
 def get_macro_precision_score(ans_path,res_path):
     ans_data = pd.read_csv(ans_path).iloc[:,-1]
     res_data = pd.read_csv(res_path).iloc[:,-1]
     from sklearn.metrics import precision_score
     precision_score =  precision_score(ans_data, res_data, average="macro")
-    return precision_score
+    return round(precision_score*10,1)
 
 def get_f1_score(ans_path,res_path):
     ans_data = pd.read_csv(ans_path).iloc[:,-1]
     res_data = pd.read_csv(res_path).iloc[:,-1]
     from sklearn.metrics import f1_score
     f1_s = f1_score(ans_data,res_data)
-    return f1_s
+    return round(f1_s*10,1)
 def get_rmse(ans_path,res_path):
     ans_data = pd.read_csv(ans_path).iloc[:,-1]
     res_data = pd.read_csv(res_path).iloc[:,-1]
     import numpy as np
     rmse = np.sqrt(np.mean(np.square(ans_data-res_data)))
-    return rmse
+    return round((1-rmse)*10,1)
 def get_r2_score(ans_path,res_path):
     ans_data = pd.read_csv(ans_path).iloc[:,-1]
     res_data = pd.read_csv(res_path).iloc[:,-1]
     from sklearn.metrics import r2_score
     r2_score = r2_score(ans_data,res_data)
-    return r2_score
+    return round(r2_score*10,1)
 
 
-def get_score(ans_path,res_path,evaluate_standard):
-	if evaluate_standard == 'micro' :
-		score = get_micro_precision_score(ans_path,res_path)
-		return round(score*10,1)
-	elif evaluate_standard == 'macro':
-		score = get_macro_precision_score(ans_path,res_path)
-		return round(score*10,1)
-	elif evaluate_standard == 'f1_score':
-		score = get_f1_score(ans_path,res_path)
-		return round(score*10,1)
-	elif evaluate_standard == 'rmse':
-		score = get_rmse(ans_path,res_path)
-		return round((1-score)*10,1)
-	elif evaluate_standard == 'r2_score':
-		score = get_r2_score(ans_path,res_path)
-		return round(score*10,1)
+# def get_score(ans_path,res_path,evaluate_standard):
+# 	if evaluate_standard == 'micro' :
+# 		score = get_micro_precision_score(ans_path,res_path)
+# 		return round(score*10,1)
+# 	elif evaluate_standard == 'macro':
+# 		score = get_macro_precision_score(ans_path,res_path)
+# 		return round(score*10,1)
+# 	elif evaluate_standard == 'f1_score':
+# 		score = get_f1_score(ans_path,res_path)
+# 		return round(score*10,1)
+# 	elif evaluate_standard == 'rmse':
+# 		score = get_rmse(ans_path,res_path)
+# 		return round((1-score)*10,1)
+# 	elif evaluate_standard == 'r2_score':
+# 		score = get_r2_score(ans_path,res_path)
+# 		return round(score*10,1)
 
 
 if __name__ == '__main__':

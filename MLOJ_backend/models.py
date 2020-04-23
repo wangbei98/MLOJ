@@ -74,6 +74,9 @@ class HomeworkTable(db.Model):
     # 建立和 file 的一对多关系
     files = db.relationship('FileTable')
 
+    # 所使用的指标的id
+    indexid = db.Column(db.Integer)
+
     homework_fields = {
         'hid': fields.Integer,
         'htype': fields.Integer,
@@ -82,6 +85,7 @@ class HomeworkTable(db.Model):
         'homework_begin_time': fields.Integer,
         'homework_end_time':fields.Integer,
         'publish_rank':fields.Integer,
+        'indexid':fields.Integer,
         'files': fields.List(fields.Nested({
             'fid': fields.Integer,
             'hid': fields.Integer,
@@ -130,5 +134,31 @@ class UserHomeworkTable(db.Model):
         'submit_time': fields.Integer
     }
     @marshal_with(user_homework_fields)
+    def to_json(self):
+        return self
+
+class EvaluationIndexTable(db.Model):
+    __tablename__ = 'evaluation_index'
+    indexid = db.Column(db.Integer,primary_key=True)
+    micro = db.Column(db.Integer,default = 0)
+    macro = db.Column(db.Integer,default = 0)
+    f1_score = db.Column(db.Integer,default = 0)
+    rmse = db.Column(db.Integer,default = 0)
+    r2_score = db.Column(db.Integer,default = 0)
+
+    @staticmethod
+    def get_names():
+        index = ['micro','macro','f1_score','rmse','r2_score']
+        return index
+
+    evaluation_index_fields = {
+        'indexid': fields.Integer,
+        'micro': fields.Integer,
+        'macro': fields.Integer,
+        'f1_score': fields.Integer,
+        'rmse': fields.String,
+        'r2_score': fields.Integer
+    }
+    @marshal_with(evaluation_index_fields)
     def to_json(self):
         return self
