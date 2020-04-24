@@ -419,14 +419,15 @@ class DatasetsAPI(Resource):
 # /api/homework/submit?hid=xxx
 # 学生提交的作业
 class SubmitAPI(Resource):
-    @login_required
-    # 学生查看自己提交的作业
+    @admin_required
+    # 老师查看学生提交的作业
     def get(self):
         parse = reqparse.RequestParser()
         parse.add_argument('hid',type=int,required=True,help='hid cannot be blank')
+        parse.add_argument('uid',type=int,required,True,help='uid cannot be blank')
         args = parse.parse_args()
         hid = args.get('hid')
-        uid = current_user.uid
+        uid = args.get('uid')
         try:
             print(hid)
             print(uid)

@@ -2,6 +2,13 @@ from flask_login import current_user
 from flask import make_response,jsonify
 from functools import wraps
 from flask import current_app
+from models import UserHomeworkTable,FileTable
+from sqlalchemy import and_
+from settings import config
+
+RESOURCES_FOLDER = config['RESOURCES_FOLDER']
+
+
 def admin_required(func):
 	@wraps(func)
 	def decorated_view(*args, **kwargs):
@@ -87,6 +94,20 @@ def get_r2_score(ans_path,res_path):
 # 		score = get_r2_score(ans_path,res_path)
 # 		return round(score*10,1)
 
+
+## 获取某个作业对应的答案的路径
+def get_answer_path(hid):
+	try:
+		file = FileTable.query.filter(and_(FileTable.hid==hid,FileTable.ftype==-1)).first()
+	except:
+		return ''
+	if file is None:
+		return ''
+	filename = file.filename
+	ftype = file.ftype
+	actual_filename = generate_dataset_name(hid,ftype,filename)
+	target_file = os.path.join(os.path.expanduser(RESOURCES_FOLDER), actual_filename)
+	return target_file
 
 if __name__ == '__main__':
     res_path = 'test/res.csv'
