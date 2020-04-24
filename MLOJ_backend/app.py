@@ -17,7 +17,8 @@ from APIS.resources import CoursewareAPI,CoursewaresAPI
 from APIS.resources import DatasetAPI,DatasetsAPI
 from APIS.resources import SubmitAPI
 from APIS.resources import StudentsAPI,ScoreAPI
-from APIS.resources import EvaluateIndexAPI,IndexNamesAPI
+from APIS.resources import WeightAPI,IndexNamesAPI
+from APIS.resources import CSVTest,CSVAPI
 # from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 # from itsdangerous import SignatureExpired, BadSignature
 
@@ -94,7 +95,10 @@ api.add_resource(SubmitAPI,'/api/homework/submit',endpoint='submit')
 api.add_resource(ScoreAPI,'/api/homework/score',endpoint='score')
 api.add_resource(StudentsAPI,'/api/homework/students',endpoint='students')
 
-api.add_resource(EvaluateIndexAPI,'/api/evaluateindex',endpoint='evaluateindex')
+api.add_resource(WeightAPI,'/api/weight',endpoint='weight')
 api.add_resource(IndexNamesAPI,'/api/indexnames',endpoint='indexnames')
+
+api.add_resource(CSVTest,'/api/test',endpoint='test')
+api.add_resource(CSVAPI,'/api/homework/uploadcsv',endpoint='uploadcsv')
 
 

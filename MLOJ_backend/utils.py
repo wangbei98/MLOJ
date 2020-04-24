@@ -5,7 +5,7 @@ from flask import current_app
 from models import UserHomeworkTable,FileTable
 from sqlalchemy import and_
 from settings import config
-
+import os
 RESOURCES_FOLDER = config['RESOURCES_FOLDER']
 
 
@@ -34,6 +34,11 @@ def generate_dataset_name(hid,ftype,filename):
 
 # 为submit生成文件名
 def generate_submit_name(hid, uid,filename):
+    return hashlib.md5(
+        (str(hid) + '_' + str(uid)).encode('utf-8')).hexdigest() + '_ ' + filename
+
+
+def generate_temp_name(hid, uid,filename):
     return hashlib.md5(
         (str(hid) + '_' + str(uid)).encode('utf-8')).hexdigest() + '_ ' + filename
 
@@ -77,22 +82,6 @@ def get_r2_score(ans_path,res_path):
     return round(r2_score*10,1)
 
 
-# def get_score(ans_path,res_path,evaluate_standard):
-# 	if evaluate_standard == 'micro' :
-# 		score = get_micro_precision_score(ans_path,res_path)
-# 		return round(score*10,1)
-# 	elif evaluate_standard == 'macro':
-# 		score = get_macro_precision_score(ans_path,res_path)
-# 		return round(score*10,1)
-# 	elif evaluate_standard == 'f1_score':
-# 		score = get_f1_score(ans_path,res_path)
-# 		return round(score*10,1)
-# 	elif evaluate_standard == 'rmse':
-# 		score = get_rmse(ans_path,res_path)
-# 		return round((1-score)*10,1)
-# 	elif evaluate_standard == 'r2_score':
-# 		score = get_r2_score(ans_path,res_path)
-# 		return round(score*10,1)
 
 
 ## 获取某个作业对应的答案的路径

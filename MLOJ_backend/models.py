@@ -75,7 +75,7 @@ class HomeworkTable(db.Model):
     files = db.relationship('FileTable')
 
     # 所使用的指标的id
-    indexid = db.Column(db.Integer)
+    weightid = db.Column(db.Integer)
 
     homework_fields = {
         'hid': fields.Integer,
@@ -85,7 +85,7 @@ class HomeworkTable(db.Model):
         'homework_begin_time': fields.Integer,
         'homework_end_time':fields.Integer,
         'publish_rank':fields.Integer,
-        'indexid':fields.Integer,
+        'weightid':fields.Integer,
         'files': fields.List(fields.Nested({
             'fid': fields.Integer,
             'hid': fields.Integer,
@@ -137,9 +137,9 @@ class UserHomeworkTable(db.Model):
     def to_json(self):
         return self
 
-class EvaluationIndexTable(db.Model):
-    __tablename__ = 'evaluation_index'
-    indexid = db.Column(db.Integer,primary_key=True)
+class WeightTable(db.Model):
+    __tablename__ = 'weight'
+    weightid = db.Column(db.Integer,primary_key=True)
     micro = db.Column(db.Integer,default = 0)
     macro = db.Column(db.Integer,default = 0)
     f1_score = db.Column(db.Integer,default = 0)
@@ -151,14 +151,14 @@ class EvaluationIndexTable(db.Model):
         index = ['micro','macro','f1_score','rmse','r2_score']
         return index
 
-    evaluation_index_fields = {
-        'indexid': fields.Integer,
+    weight_fields = {
+        'weightid': fields.Integer,
         'micro': fields.Integer,
         'macro': fields.Integer,
         'f1_score': fields.Integer,
-        'rmse': fields.String,
+        'rmse': fields.Integer,
         'r2_score': fields.Integer
     }
-    @marshal_with(evaluation_index_fields)
+    @marshal_with(weight_fields)
     def to_json(self):
         return self

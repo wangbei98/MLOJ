@@ -16,13 +16,16 @@ from werkzeug.datastructures import FileStorage
 from models import CoursewareTable,FileTable
 from flask import make_response
 from flask import send_file
-from utils import admin_required,generate_dataset_name,generate_submit_name
+from utils import admin_required,generate_dataset_name,generate_submit_name,generate_temp_name
 from sqlalchemy import and_
-from models import EvaluationIndexTable
+from models import WeightTable
+from utils import get_answer_path
+from utils import get_micro_precision_score,get_macro_precision_score,get_f1_score,get_rmse,get_r2_score
 # 获取配置文件中定义的资源目录
 RESOURCES_FOLDER = config['RESOURCES_FOLDER']
 COURSEWARES_FOLDER = config['COURSEWARES_FOLDER']
 SUBMITS_FOLDER = config['SUBMITS_FOLDER']
+TEMP_FOLDER = config['TEMP_FOLDER']
 
 '''
 资源操作相关API
@@ -161,12 +164,12 @@ class HomeworksAPI(Resource):
         parse.add_argument("desc", type=str, required=True, help='homework_desc cannot be blank!')
         parse.add_argument('publish_rank',type =int,required=True,help = 'public_rank cannot be blank')
         parse.add_argument('end_time',type = int,required=True,help='end time cannot be blank')
-        parse.add_argument('indexid',type=int,required=True,help='index id is required')
+        parse.add_argument('weightid',type=int,required=True,help='index id is required')
         # 将parse对象中的参数读取到args中
         args = parse.parse_args()
         # new
         homework = HomeworkTable(htype=args.get('type'), homeworkname=args.get(
-            'homeworkname'), homework_desc=args.get('desc'), homework_begin_time=int(time.time()),homework_end_time=int(time.time())+args.get('end_time')*24*3600,indexid = args.get('indexid'))
+            'homeworkname'), homework_desc=args.get('desc'), homework_begin_time=int(time.time()),homework_end_time=int(time.time())+args.get('end_time')*24*3600,weightid = args.get('weightid'))
 
         try:
             db.session.add(homework)
@@ -424,7 +427,7 @@ class SubmitAPI(Resource):
     def get(self):
         parse = reqparse.RequestParser()
         parse.add_argument('hid',type=int,required=True,help='hid cannot be blank')
-        parse.add_argument('uid',type=int,required,True,help='uid cannot be blank')
+        parse.add_argument('uid',type=int,required=True,help='uid cannot be blank')
         args = parse.parse_args()
         hid = args.get('hid')
         uid = args.get('uid')
@@ -458,8 +461,6 @@ class SubmitAPI(Resource):
         hid = args.get('hid')
         file = args.get('file')
         uid = current_user.uid
-        print(hid)
-        print(uid)
         try:
             user_homework = UserHomeworkTable.query.filter(and_(UserHomeworkTable.hid==hid,UserHomeworkTable.uid==uid)).first()
         except:
@@ -586,13 +587,13 @@ class StudentsAPI(Resource):
             response = make_response(jsonify(code=10,message='database error'))
             return response
 
-class EvaluateIndexAPI(Resource):
+class WeightAPI(Resource):
     # 获取所有的评测标准
     @admin_required
     def get(self):
         try:
-            evaluate_indexs = EvaluationIndexTable.query.all()
-            response = make_response(jsonify(code = 0,data={'evaluate_indexs':[index.to_json() for index in evaluate_indexs]}))
+            weights = WeightTable.query.all()
+            response = make_response(jsonify(code = 0,data={'weights':[weight.to_json() for weight in weights]}))
             return response
         except :
             response = make_response(jsonify(code=10,message='database error'))
@@ -608,14 +609,14 @@ class EvaluateIndexAPI(Resource):
         parse.add_argument('r2_score',type=int,required=True,help='cannot be blank')
         args = parse.parse_args()
         try:
-            new_index = EvaluationIndexTable(
+            new_weight = WeightTable(
                 micro=args.get('micro'),
                 macro=args.get('macro'),
                 f1_score=args.get('f1_score'),
                 rmse=args.get('rmse'),
                 r2_score=args.get('r2_score'),
                 )
-            db.session.add(new_index)
+            db.session.add(new_weight)
             db.session.commit()
             response = make_response(jsonify(code=0,message='OK'))
             return response
@@ -628,12 +629,136 @@ class IndexNamesAPI(Resource):
     @admin_required
     def get(self):
         try:
-            names = EvaluationIndexTable.get_names()
+            names = WeightTable.get_names()
             print(names)
             response = make_response(jsonify(code=0,data={'names':names},message='OK'))
             return response
         except:
             response = make_response(jsonify(code=10,message='database error'))
             return response
+
+class CSVAPI(Resource):
+    @login_required
+    def post(self):
+        parse = reqparse.RequestParser()
+        parse.add_argument('hid',type=int,required=True,help='hid cannot be blank')
+        parse.add_argument('file',type = FileStorage,location='files')
+        args = parse.parse_args()
+        hid = args.get('hid')
+        file = args.get('file')
+        uid = current_user.uid
+        # 获取当前作业
+        try:
+            homework = HomeworkTable.query.get(hid)
+        except:
+            response = make_response(jsonify(code=10,message='database error'))
+            return response
+
+        # 获取权重 id 
+        weight_id = homework.weightid
+        try:
+            weight = WeightTable.query.get(weight_id)
+        except:
+            response = make_response(jsonify(code=10,message='database error'))
+            return response
+        print(weight)
+
+
+        ## 获取答案的路径
+        ans_path = get_answer_path(hid)
+        print(ans_path)
+
+        ## 暂时保存
+        filename = file.filename
+        if '\"' in filename:
+            filename = filename[:-1]
+
+        actual_filename = generate_temp_name(hid,uid,filename)
+        res_path = os.path.join(os.path.expanduser(TEMP_FOLDER), actual_filename)
+        file.save(res_path)
+
+        ## 各个指标的权重值
+        micro_weight = weight.micro
+        macro_weight = weight.macro
+        f1_score_weight = weight.f1_score
+        rmse_weight = weight.rmse
+        r2_score_weight = weight.r2_score
+        print('各个指标的权重')
+        print(micro_weight)
+        print(macro_weight)
+        print(f1_score_weight)
+        print(rmse_weight)
+        print(r2_score_weight)
+        ## 各个指标的得分初始化
+        micro_score = 0
+        macro_score = 0
+        f1_score_score = 0
+        rmse_score = 0
+        r2_score_score = 0
+        ## 总分
+        total = 0
+        ## 计算得分
+        
+        if micro_weight > 0:
+            total += micro_weight
+            micro_score = get_micro_precision_score(ans_path,res_path)* micro_weight
+            print('micro_score: ')
+            print(micro_score)
+        if macro_weight > 0:
+            total += macro_weight
+            macro_score = get_macro_precision_score(ans_path,res_path)* macro_weight
+            print('macro_score: ')
+            print(macro_score)
+        if f1_score_weight > 0:
+            total += f1_score_weight
+            f1_score_score = get_f1_score(ans_path,res_path)* f1_score_weight
+            print('f1_score_score: ')
+            print(f1_score_score)
+        if rmse_weight > 0:
+            total += rmse_weight
+            rmse_score = get_rmse(ans_path,res_path)* rmse_weight
+            print('rmse_score: ')
+            print(rmse_score)
+        if r2_score_weight > 0:
+            total += r2_score_weight
+            r2_score_score = get_r2_score(ans_path,res_path)* r2_score_weight
+            print('r2_score_score: ')
+            print(r2_score_score)
+        # 计算加权平均
+        score = round((micro_score + macro_score + f1_score_score + rmse_score + r2_score_score)/total , 1)
+        print('score: ')
+        print(score)
+        try:
+            print('1')
+            user_homework = UserHomeworkTable.query.filter(and_(UserHomeworkTable.hid==hid,UserHomeworkTable.uid==uid)).first()
+            print(user_homework)
+        except:
+            print('2')
+            response = make_response(jsonify(code=10,message='database error'))
+            return response
+        if user_homework is None:
+            print('3')
+            response = make_response(jsonify(code=41,message='请先上传代码，再上传结果'))
+            return response
+        try:
+            print('4')
+            user_homework.score = score
+            db.session.commit()
+        except:
+            response = make_response(jsonify(code=10,message='database error'))
+            return response
+        response = make_response(jsonify(code = 0,message='OK',data = {'user_homework':user_homework.to_json()}))
+        return response
+
+class CSVTest(Resource):
+    def post(self):
+        parse = reqparse.RequestParser()
+        parse.add_argument('file',type = FileStorage,location='files')
+        args = parse.parse_args()
+        file = args.get('file')
+        import pandas as pd
+        data = pd.read_csv(file)
+        print(data.head())
+        return 'ok'
 
 

@@ -103,7 +103,7 @@ MLOJ_backend
 | 35   | get current_user fail          |      |                            |
 | 36 | permission denied |      | 无操作权限 |
 |      |                               |      |                            |
-|      |                               |      |                            |
+| 41 | 请先上传代码，再上传作业 |      |                            |
 
 ​	
 
