@@ -148,7 +148,7 @@ class WeightTable(db.Model):
 
     @staticmethod
     def get_names():
-        index = ['micro','macro','f1_score','rmse','r2_score']
+        index = ['f1_score','macro','micro','r2_score','rmse']
         return index
 
     weight_fields = {
