@@ -668,6 +668,11 @@ class CSVAPI(Resource):
         ans_path = get_answer_path(hid)
         print(ans_path)
 
+        # 如果答案不存在
+        if ans_path == '':
+            response = make_response(jsonify(code=10,message='database error'))
+            return response
+            
         ## 暂时保存
         filename = file.filename
         if '\"' in filename:
@@ -750,6 +755,7 @@ class CSVAPI(Resource):
         response = make_response(jsonify(code = 0,message='OK',data = {'user_homework':user_homework.to_json()}))
         return response
 
+#测试代码
 class CSVTest(Resource):
     def post(self):
         parse = reqparse.RequestParser()
