@@ -29,7 +29,7 @@
       <el-table
         :data="coursewares"
         style="width: 100%"
-        max-height="250">
+        max-height="1000">
         <el-table-column
           fixed
           prop="courseware_name"
