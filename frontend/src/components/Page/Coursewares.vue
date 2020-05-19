@@ -49,6 +49,7 @@
           </template>
         </el-table-column>
         <el-table-column
+          v-if="isAdmin==1"
           fixed="right"
           label="操作"
           width="120">
