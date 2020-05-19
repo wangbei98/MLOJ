@@ -47,7 +47,7 @@
           <el-input v-model="homeworkForm.homeworkname" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="课程介绍" :label-width="formLabelWidth">
-          <el-input v-model="homeworkForm.homework_desc" autocomplete="off"></el-input>
+          <el-input type="textarea" v-model="homeworkForm.homework_desc" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="截止时间" :label-width="formLabelWidth">
           <el-input v-model="homeworkForm.end_time" autocomplete="off"></el-input>
@@ -157,11 +157,21 @@
         selected:[],
         checkAll:false,
         isIndeterminate: true,
+        weights:[]
       }
     },
     created(){
       this.$store.dispatch('getAllHomeworks')
-      this.$store.dispatch('getAllWeights')
+      if(this.isAdmin == 1){
+        this.$store.dispatch('getAllWeights')
+        .then(response => {
+          this.weights = response.data.data.weights
+        })
+        .catch(err => {
+          console.log(err)
+        })
+      }
+
     },
     computed:{
       homeworks(){
@@ -170,13 +180,6 @@
       isAdmin(){
         return this.$store.state.isAdmin
       },
-      weights(){
-        return this.$store.state.weights
-      }
-    },
-    created(){
-      this.$store.dispatch('getAllHomeworks')
-      this.$store.dispatch('getAllWeights')
     },
     methods:{
       handleAddHomework(){

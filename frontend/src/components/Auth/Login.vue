@@ -77,11 +77,15 @@
           uid:this.form.uid,
           password:this.form.password
         }).then(response => {
-          // 如果登录成功，则跳转到主页
-          this.$router.push('/')
+          if ( response.data.code == 0){
+            // 如果登录成功，则跳转到主页
+            this.$router.push('/')
 
-          // TODO：拉取所有课程信息
-          //this.$store.dispatch('getAllCourses')
+          }else {
+            this.$message.error('登录失败');
+          }
+        }).catch(err => {
+          this.$message.error('登录失败');
         })
       },
       onReset(evt) {

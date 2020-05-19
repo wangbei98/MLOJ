@@ -1,7 +1,7 @@
 <template>
   <div>
     <b-navbar toggleable="lg" type="dark" class="nav-background">
-      <b-navbar-brand href="#">机器学习评分系统</b-navbar-brand>
+      <b-navbar-brand href="/#/">机器学习评分系统</b-navbar-brand>
 
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 

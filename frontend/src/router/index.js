@@ -7,7 +7,8 @@ import Logout from '../components/Auth/Logout.vue'
 import Home from '../components/Page/Home.vue'
 import Homework from '../components/Page/Homework.vue'
 import Coursewares from '../components/Page/Coursewares.vue'
-
+import Rate from '../components/Page/Rate.vue'
+import Statistics from '../components/Page/Statistics.vue'
 
 Vue.use(Router)
 
@@ -43,6 +44,18 @@ export default new Router({
       path: '/coursewares',
       name: 'Coursewares',
       component:Coursewares
+    },
+    {
+      path: '/rate/:hid/:uid',
+      name: 'Rate',
+      component: Rate,
+      props: true
+    },
+    {
+      path: '/statistics/:hid',
+      name: 'Statistics',
+      component: Statistics,
+      props: true
     }
   ]
 })

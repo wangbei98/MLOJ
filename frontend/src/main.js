@@ -14,6 +14,19 @@ import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 Vue.use(ElementUI);
 
+//引入 echarts
+import ECharts from 'vue-echarts' // refers to components/ECharts.vue in webpack
+import 'echarts/lib/chart/line'
+import 'echarts/lib/chart/scatter'
+import 'echarts/lib/chart/pie'
+
+Vue.component('v-chart', ECharts)
+
+
+
+// highlight.js代码高亮插件
+import Highlight from './utils/highlight'; // from 路径是highlight.js的路径，纯属自定义
+Vue.use(Highlight);
 
 
 import {store} from './store/store.js'

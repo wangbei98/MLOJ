@@ -11,7 +11,7 @@ export const store = new Vuex.Store({
     username:localStorage.getItem('username') || null,
     isAdmin: localStorage.getItem('isAdmin') || 0,
     homeworks:[],
-    weights:[],
+    // weights:[],
     coursewares:[],
     scores:[],
   },
@@ -45,9 +45,9 @@ export const store = new Vuex.Store({
     refreshHomeworks(state,homeworks){
       state.homeworks = homeworks
     },
-    refreshWeights(state,weights){
-      state.weights = weights
-    }
+    // refreshWeights(state,weights){
+    //   state.weights = weights
+    // }
   },
   actions:{
     login(context,credentials){
@@ -103,6 +103,7 @@ export const store = new Vuex.Store({
       return new Promise((resolve,reject) => {
         axios.post('/register',{
           uid:data.uid,
+          username:data.username,
           password:data.password
         }).then(response => {
           alert('success')
@@ -129,8 +130,8 @@ export const store = new Vuex.Store({
       return new Promise((resolve,reject) => {
         axios.get('/weight')
         .then(response=>{
-          const weights = response.data.data.weights
-          context.commit('refreshWeights',weights)
+          // const weights = response.data.data.weights
+          // context.commit('refreshWeights',weights)
           resolve(response)
         }).catch(err => {
           console.log(err)
@@ -185,6 +186,309 @@ export const store = new Vuex.Store({
         .then(response => {
           resolve(response)
         }).catch(err => {
+          reject(err)
+        })
+      })
+    },
+    getCoursewares(context){
+      return new Promise((resolve,reject) => {
+        axios.get('/coursewares')
+        .then(response => {
+          resolve(response)
+        }).catch(err => {
+          reject(err)
+        })
+      })
+    },
+    uploadCourseware(context,data){
+      let config = {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+      console.log('action : upload courseware')
+      console.log(data.file)
+      let formData = new FormData();
+      formData.append('file',data.file)
+      console.log('action: submit upload')
+      console.log(formData)
+      return new Promise((resolve,reject) => {
+        axios.post('/coursewares',formData,config)
+        .then(response=>{
+          // context.commit('reNameFile',data)
+          console.log(response)
+          resolve(response)
+        }).catch(err => {
+          console.log(err)
+          reject(err)
+        })
+      })
+    },
+    downloadCourseware(context,cwid){
+      console.log('action downloadCourseware')
+      return new Promise((resolve,reject) => {
+        axios.get('/courseware?cwid='+cwid,{
+          responseType: 'blob'
+        })
+        .then(response =>{
+          resolve(response)
+        }).catch(err => {
+          console.log(err)
+          reject(err)
+        })
+      })
+    },
+    deleteCourseware(context,cwid){
+      return new Promise((resolve,reject) => {
+        axios.delete('/courseware?cwid='+cwid)
+        .then(response => {
+          resolve(response)
+        })
+        .catch(err => {
+          reject(err)
+        })
+      })
+    },
+    uploadDataset(context,data){
+      let config = {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+      console.log('action : upload dataset')
+      console.log(data.file)
+      let formData = new FormData();
+      formData.append('file',data.file)
+      formData.append('hid',data.hid)
+      formData.append('ftype',data.ftype)
+      console.log('action: submit upload')
+      console.log(formData)
+      return new Promise((resolve,reject) => {
+        axios.post('/datasets',formData,config)
+        .then(response=>{
+          // context.commit('reNameFile',data)
+          console.log(response)
+          resolve(response)
+        }).catch(err => {
+          console.log(err)
+          reject(err)
+        })
+      })
+    },
+    uploadTestset(context,data){
+      let config = {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+      console.log('action : upload testset')
+      console.log(data.file)
+      let formData = new FormData();
+      formData.append('file',data.file)
+      formData.append('hid',data.hid)
+      formData.append('ftype',data.ftype)
+      console.log('action: submit upload')
+      console.log(formData)
+      return new Promise((resolve,reject) => {
+        axios.post('/datasets',formData,config)
+        .then(response=>{
+          // context.commit('reNameFile',data)
+          console.log(response)
+          resolve(response)
+        }).catch(err => {
+          console.log(err)
+          reject(err)
+        })
+      })
+    },
+    uploadAnswerset(context,data){
+      let config = {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+      console.log('action : upload answerset')
+      console.log(data.file)
+      let formData = new FormData();
+      formData.append('file',data.file)
+      formData.append('hid',data.hid)
+      formData.append('ftype',data.ftype)
+      console.log('action: submit upload')
+      console.log(formData)
+      return new Promise((resolve,reject) => {
+        axios.post('/datasets',formData,config)
+        .then(response=>{
+          // context.commit('reNameFile',data)
+          console.log(response)
+          resolve(response)
+        }).catch(err => {
+          console.log(err)
+          reject(err)
+        })
+      })
+    },
+    downloadTrainingSet(context,fid){
+      console.log('action downloadTrainingSet')
+      return new Promise((resolve,reject) => {
+        axios.get('/dataset?fid='+fid,{
+          responseType: 'blob'
+        })
+        .then(response =>{
+          resolve(response)
+        }).catch(err => {
+          console.log(err)
+          reject(err)
+        })
+      })
+    },
+    downloadTestSet(context,fid){
+      console.log('action downloadTestSet')
+      return new Promise((resolve,reject) => {
+        axios.get('/dataset?fid='+fid,{
+          responseType: 'blob'
+        })
+        .then(response =>{
+          resolve(response)
+        }).catch(err => {
+          console.log(err)
+          reject(err)
+        })
+      })
+    },
+    downloadAnswerSet(context,fid){
+      console.log('action downloadAnswerSet')
+      return new Promise((resolve,reject) => {
+        axios.get('/dataset?fid='+fid,{
+          responseType: 'blob'
+        })
+        .then(response =>{
+          resolve(response)
+        }).catch(err => {
+          console.log(err)
+          reject(err)
+        })
+      })
+    },
+    getStudents(context,hid){
+      console.log('action getStudents')
+      return new Promise((resolve,reject) => {
+        axios.get('/homework/students?hid='+hid)
+        .then(response=>{
+          resolve(response)
+        }).catch(err => {
+          console.log(err)
+          reject(err)
+        })
+      })
+    },
+    uploadHTML(context,data){
+      let config = {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+      console.log('action : upload html')
+      console.log(data.file)
+      let formData = new FormData();
+      formData.append('file',data.file)
+      formData.append('hid',data.hid)
+      console.log('action: submit upload')
+      console.log(formData)
+      return new Promise((resolve,reject) => {
+        axios.post('/homework/submit',formData,config)
+        .then(response=>{
+          // context.commit('reNameFile',data)
+          console.log(response)
+          resolve(response)
+        }).catch(err => {
+          console.log(err)
+          reject(err)
+        })
+      })
+    },
+    uploadPython(context,data){
+      let config = {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+      console.log('action : upload python')
+      console.log(data.file)
+      let formData = new FormData();
+      formData.append('file',data.file)
+      formData.append('hid',data.hid)
+      console.log('action: submit upload')
+      console.log(formData)
+      return new Promise((resolve,reject) => {
+        axios.post('/homework/submit',formData,config)
+        .then(response=>{
+          // context.commit('reNameFile',data)
+          console.log(response)
+          resolve(response)
+        }).catch(err => {
+          console.log(err)
+          reject(err)
+        })
+      })
+    },
+    uploadResult(context,data){
+      let config = {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+      console.log('action : upload html')
+      console.log(data.file)
+      let formData = new FormData();
+      formData.append('file',data.file)
+      formData.append('hid',data.hid)
+      console.log('action: submit upload')
+      console.log(formData)
+      return new Promise((resolve,reject) => {
+        axios.post('/homework/uploadcsv',formData,config)
+        .then(response=>{
+          // context.commit('reNameFile',data)
+          console.log(response)
+          resolve(response)
+        }).catch(err => {
+          console.log(err)
+          reject(err)
+        })
+      })
+    },
+    getSubmitedData(context,data){
+      return new Promise((resolve,reject) => {
+        axios.get('/homework/submit?hid='+data.hid + '&uid='+ data.uid)
+        .then(response => {
+          resolve(response)
+        })
+        .catch(err => {
+          reject(err)
+        })
+      })
+    },
+    submitScore(context,data){
+      return new Promise((resolve,reject) => {
+        axios.post('/homework/score',{
+          hid:data.hid,
+          uid:data.uid,
+          score:data.score
+        })
+        .then(response => {
+          resolve(response)
+        })
+        .catch(err => {
+          reject(err)
+        })
+      })
+    },
+    getMyScore(context,hid){
+      return new Promise((resolve,reject) => {
+        axios.get('/homework/score?hid='+hid)
+        .then(response => {
+          resolve(response)
+        })
+        .catch(err => {
           reject(err)
         })
       })
