@@ -3,7 +3,7 @@
       <slot></slot>
       <!-- <b-col l="4"> -->
         <b-card
-            :title="homeworkname"
+            :title="homeworkname|cutString(8)"
             img-src="https://picsum.photos/600/300/?image=25"
             img-alt="Image"
             img-top

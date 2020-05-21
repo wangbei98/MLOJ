@@ -86,7 +86,7 @@
             style="width: 25%; margin: 10px;"
             v-model="file_train"
             :state="Boolean(file_train)"
-            placeholder="Choose 训练集 or drop it here..."
+            placeholder="上传训练集"
             drop-placeholder="Drop file here..."
           >
           </b-form-file>
@@ -94,7 +94,7 @@
             style="width: 25%; margin: 10px"
             v-model="file_test"
             :state="Boolean(file_test)"
-            placeholder="Choose 训练集 or drop it here..."
+            placeholder="上传测试集(数据部分)"
             drop-placeholder="Drop file here..."
           >
           </b-form-file>
@@ -102,7 +102,7 @@
             style="width: 25%; margin: 10px"
             v-model="file_ans"
             :state="Boolean(file_ans)"
-            placeholder="Choose 训练集 or drop it here..."
+            placeholder="上传测试集(答案部分)"
             drop-placeholder="Drop file here..."
           >
           </b-form-file>
