@@ -15,7 +15,7 @@
     "bootstrap-vue": "^2.14.0",
     "echarts": "^4.7.0",
     "element-ui": "^2.13.1",
-    "highlight.js": "^10.0.3",
+    "highlight.js": "^10.4.1",
     "vue": "^2.5.2",
     "vue-echarts": "^5.0.0-beta.0",
     "vue-router": "^3.0.1",
